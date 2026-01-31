@@ -13,9 +13,11 @@ class ChessEngineAdapter extends EventEmitter {
     async initialize() {
         return new Promise((resolve, reject) => {
             this.process = spawn(this.enginePath);
-            
+            this.lastStderr = '';
+
             this.process.on('error', (error) => {
-                reject(new Error(`Failed to start engine: ${error.message}`));
+                clearTimeout(initTimeout);
+                reject(new Error(`Failed to start engine '${this.enginePath}': ${error.message}`));
             });
 
             this.process.on('close', (code) => {
@@ -38,21 +40,32 @@ class ChessEngineAdapter extends EventEmitter {
             });
 
             this.process.stderr.on('data', (data) => {
-                console.error(`Engine stderr: ${data}`);
+                const msg = data.toString();
+                this.lastStderr += msg;
+                // Keep a recent window of stderr
+                if (this.lastStderr.length > 2000) {
+                    this.lastStderr = this.lastStderr.slice(-2000);
+                }
+                console.error(`Engine stderr (${this.enginePath}): ${msg}`);
             });
 
+            let initTimeout = setTimeout(() => {
+                if (!this.isReady) {
+                    const stderrPreview = this.lastStderr ? ` Stderr (last lines): ${this.lastStderr.split('\n').slice(-5).join(' | ')}` : '';
+                    reject(new Error(`Engine initialization timeout for '${this.enginePath}'.${stderrPreview}`));
+                }
+            }, 10000);
+
             this.once('ready', () => {
+                clearTimeout(initTimeout);
                 this.isReady = true;
                 resolve();
             });
 
-            this.once('error', reject);
-
-            setTimeout(() => {
-                if (!this.isReady) {
-                    reject(new Error('Engine initialization timeout'));
-                }
-            }, 10000);
+            this.once('error', (err) => {
+                clearTimeout(initTimeout);
+                reject(err);
+            });
 
             this.sendCommand('uci');
         });
