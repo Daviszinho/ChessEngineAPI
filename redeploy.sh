@@ -104,6 +104,15 @@ reload_nginx() {
 main() {
     echo "📍 Working directory: $APP_DIR"
     
+    # Fetch latest from repository
+    echo "📥 Fetching latest from repository..."
+    cd "$APP_DIR"
+    git fetch --all --prune
+    if [ $? -ne 0 ]; then
+        echo "❌ git fetch failed"
+        exit 1
+    fi
+    
     # Stop running processes
     stop_processes
     
