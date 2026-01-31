@@ -107,7 +107,7 @@ main() {
     # Fetch latest from repository
     echo "📥 Fetching latest from repository..."
     cd "$APP_DIR"
-    git fetch origin --all --prune
+    git fetch origin 
     if [ $? -ne 0 ]; then
         echo "❌ git fetch failed"
         exit 1
