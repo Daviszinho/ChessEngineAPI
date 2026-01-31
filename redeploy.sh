@@ -112,7 +112,7 @@ main() {
         echo "❌ git fetch failed"
         exit 1
     fi
-    git fetch pull origin main
+    git pull origin main
     if [ $? -ne 0 ]; then
         echo "❌ git fetch failed"
         exit 1
