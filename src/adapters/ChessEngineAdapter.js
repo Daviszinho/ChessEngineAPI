@@ -2,9 +2,10 @@ const { spawn } = require('child_process');
 const EventEmitter = require('events');
 
 class ChessEngineAdapter extends EventEmitter {
-    constructor(enginePath) {
+    constructor(enginePath, engineArgs = []) {
         super();
         this.enginePath = enginePath;
+        this.engineArgs = engineArgs;
         this.process = null;
         this.isReady = false;
         this.gameId = null;
@@ -12,7 +13,7 @@ class ChessEngineAdapter extends EventEmitter {
 
     async initialize() {
         return new Promise((resolve, reject) => {
-            this.process = spawn(this.enginePath);
+            this.process = spawn(this.enginePath, this.engineArgs || []);
             this.lastStderr = '';
 
             this.process.on('error', (error) => {
