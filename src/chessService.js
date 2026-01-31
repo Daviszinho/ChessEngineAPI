@@ -4,6 +4,7 @@ const GNUChessAdapter = require('./adapters/GNUChessAdapter');
 const FruitAdapter = require('./adapters/FruitAdapter');
 const Toga2Adapter = require('./adapters/Toga2Adapter');
 const PhalanxAdapter = require('./adapters/PhalanxAdapter');
+const SjengAdapter = require('./adapters/SjengAdapter');
 
 const chessFacade = new ChessEngineFacade();
 
@@ -14,6 +15,7 @@ async function initializeEngines() {
         chessFacade.registerEngine('fruit', new FruitAdapter());
         chessFacade.registerEngine('toga2', new Toga2Adapter());
         chessFacade.registerEngine('phalanx', new PhalanxAdapter());
+        chessFacade.registerEngine('sjeng', new SjengAdapter());
         
         console.log('Available engines:', chessFacade.getAvailableEngines());
     } catch (error) {

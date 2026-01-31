@@ -10,7 +10,8 @@ function testAPI() {
         { engine: 'fruit', level: 15 },
         { engine: 'gnuchess', level: 3 },
         { engine: 'gnuchess', level: 8 },
-        { engine: 'toga2', level: 5 }
+        { engine: 'toga2', level: 5 },
+        { engine: 'sjeng', level: 5 }
     ];
 
     async function runTest(testCase) {

@@ -9,10 +9,10 @@ const moveRequestSchema = Joi.object({
             'any.required': 'FEN position is required'
         }),
     engine: Joi.string()
-        .valid('stockfish', 'gnuchess', 'fruit', 'toga2', 'phalanx')
+        .valid('stockfish', 'gnuchess', 'fruit', 'toga2', 'phalanx', 'sjeng')
         .default('stockfish')
         .messages({
-            'any.only': 'Invalid engine. Available: stockfish, gnuchess, fruit, toga2, phalanx'
+            'any.only': 'Invalid engine. Available: stockfish, gnuchess, fruit, toga2, phalanx, sjeng'
         }),
     level: Joi.number()
         .integer()
