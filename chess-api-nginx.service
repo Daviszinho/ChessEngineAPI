@@ -1,0 +1,13 @@
+[Unit]
+Description=Chess Engine API Nginx Service
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/nginx -c /home/daviszinho/ChessEngineAPI/nginx/nginx.conf
+ExecReload=/usr/sbin/nginx -s reload -c /home/daviszinho/ChessEngineAPI/nginx/nginx.conf
+PIDFile=/home/daviszinho/ChessEngineAPI/nginx/nginx.pid
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
