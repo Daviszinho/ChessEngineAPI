@@ -68,8 +68,23 @@ class ChessEngineAdapter extends EventEmitter {
                 reject(err);
             });
 
-            this.sendCommand('uci');
+            // Allow subclasses to implement their own handshake
+            if (typeof this.handshake === 'function') {
+                try {
+                    this.handshake();
+                } catch (e) {
+                    // ignore handshake errors here; they'll be surfaced by timeout or error events
+                }
+            } else {
+                // default to UCI handshake for backward compatibility
+                this.sendCommand('uci');
+            }
         });
+    }
+
+    // Default handshake (UCI). Subclasses can override.
+    handshake() {
+        this.sendCommand('uci');
     }
 
     handleEngineOutput(line) {
