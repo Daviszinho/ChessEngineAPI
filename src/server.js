@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const { chessFacade, initializeEngines } = require('./chessService');
+const { Chess } = require('chess.js');
 const { validateMoveRequest } = require('./middleware/validation');
 
 const app = express();
@@ -31,11 +32,28 @@ app.post('/api/move', validateMoveRequest, async (req, res) => {
         console.log(`Request: FEN=${fen}, Engine=${engine}, Level=${level}`);
         
         const result = await chessFacade.getBestMove(fen, engine, level);
+
+        // Try to compute SAN from engine move when possible
+        let san = null;
+        try {
+            if (result && result.move && /^[a-h][1-8][a-h][1-8][qrbn]?$/i.test(result.move)) {
+                const chess = new Chess(fen);
+                const from = result.move.slice(0,2);
+                const to = result.move.slice(2,4);
+                const promotion = result.move.length > 4 ? result.move[4] : undefined;
+                const mv = chess.move({ from, to, promotion });
+                if (mv) san = mv.san;
+            }
+        } catch (e) {
+            console.warn('Failed to compute SAN for engine move:', e.message);
+        }
+
+        const responsePayload = Object.assign({}, result, { san });
         
         res.json({
             success: true,
             request: { fen, engine, level },
-            response: result,
+            response: responsePayload,
             timestamp: new Date().toISOString()
         });
     } catch (error) {

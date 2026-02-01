@@ -91,6 +91,11 @@ The API supports multiple engines. Below is a quick reference showing each engin
 
 > Note: XBoard engines are driven using an XBoard-style handshake (eg. `xboard`/`protover`) and may use `depth`/`time` commands instead of UCI options. Level mapping for XBoard engines is approximated (e.g., level -> depth 1..6); see adapters for details.
 
+Response format note
+
+- The API returns engine moves in the engine's typical notation (usually long algebraic coordinates like `e2e4` or `g1f3`).
+- For convenience, the API also includes a `san` field when possible (e.g., `Nf3`) computed from the provided FEN, so clients that expect SAN can use it directly.
+
 ## AI Consumer Guide
 
 ### Production API Endpoint
