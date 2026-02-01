@@ -11,8 +11,9 @@ class GNUChessAdapter extends ChessEngineAdapter {
 
 
 
-    // XBoard handshake - declare protocol support
+    // XBoard handshake - declare protocol support and wait for feature lines
     handshake() {
+        this.awaitingFeature = true;
         this.sendCommand('xboard');
         this.sendCommand('protover 2');
     }
@@ -21,11 +22,10 @@ class GNUChessAdapter extends ChessEngineAdapter {
         // Clean up the line by removing control characters
         const cleanLine = line.replace(/[\x00-\x1F\x7F]/g, '').trim();
 
-        // Detect common startup prompts (e.g., GNUChess banner or prompt) and mark ready
-        if (!this.isReady && (cleanLine.toLowerCase().startsWith('gnu') || /^\[.*\]$/.test(cleanLine) || /gnu chess/i.test(cleanLine))) {
-            console.log(`${this.engineName} detected ready via startup line: '${cleanLine}'`);
-            this.emit('ready');
-            return;
+        // Detect startup banner; do not mark ready yet — wait for feature lines from protover
+        if (!this.isReady && (cleanLine.toLowerCase().startsWith('gnu') || /gnu chess/i.test(cleanLine))) {
+            console.log(`${this.engineName} startup banner: '${cleanLine}'`);
+            // wait for feature lines
         }
 
         // Log engine output to help diagnose why no move is produced

@@ -16,17 +16,24 @@ class ChessEngineAdapter extends EventEmitter {
         return new Promise((resolve, reject) => {
             this.process = spawn(this.enginePath, this.engineArgs || []);
             this.lastStderr = '';
+            this._currentMoveReject = null;
 
             this.process.on('error', (error) => {
                 clearTimeout(initTimeout);
                 reject(new Error(`Failed to start engine '${this.enginePath}': ${error.message}`));
             });
 
-            this.process.on('close', (code) => {
+            this.process.on('close', (code, signal) => {
                 this.isReady = false;
-                if (code !== 0) {
-                    console.warn(`Engine process exited with code ${code}`);
+                console.warn(`Engine process exited with code ${code}, signal ${signal}`);
+                // If we were waiting for a move, reject it immediately
+                if (this._currentMoveReject) {
+                    const err = new Error(`Engine process exited unexpectedly (code=${code} signal=${signal})`);
+                    this._currentMoveReject(err);
+                    this._currentMoveReject = null;
                 }
+                // Also emit an error for global visibility
+                this.emit('engine-exit', { code, signal });
             });
 
             let buffer = '';
@@ -114,13 +121,18 @@ class ChessEngineAdapter extends EventEmitter {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 this.removeAllListeners('bestmove');
+                this._currentMoveReject = null;
                 reject(new Error('Move calculation timeout'));
             }, 30000);
 
             this.once('bestmove', (move) => {
                 clearTimeout(timeout);
+                this._currentMoveReject = null;
                 resolve(move);
             });
+
+            // Keep reference to reject so we can fail fast if engine process dies
+            this._currentMoveReject = reject;
 
             this.setupGame(fen, level);
         });
@@ -142,6 +154,7 @@ class ChessEngineAdapter extends EventEmitter {
             });
             this.process = null;
             this.isReady = false;
+            this._currentMoveReject = null;
         }
     }
 }
