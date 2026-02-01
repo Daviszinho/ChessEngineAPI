@@ -10,6 +10,10 @@ class ChessEngineFacade {
         this.adapters.set(name.toLowerCase(), adapter);
     }
 
+    getAdapter(name) {
+        return this.adapters.get(name?.toLowerCase());
+    }
+
     async getBestMove(fen, engine, level = 1) {
         const engineName = engine?.toLowerCase() || this.defaultEngine;
         const adapter = this.adapters.get(engineName);

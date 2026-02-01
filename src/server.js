@@ -31,25 +31,76 @@ app.post('/api/move', validateMoveRequest, async (req, res) => {
         
         console.log(`Request: FEN=${fen}, Engine=${engine}, Level=${level}`);
         
-        const result = await chessFacade.getBestMove(fen, engine, level);
+        let result = await chessFacade.getBestMove(fen, engine, level);
 
-        // Try to compute SAN from engine move when possible
-        let san = null;
-        try {
-            if (result && result.move && /^[a-h][1-8][a-h][1-8][qrbn]?$/i.test(result.move)) {
-                const chess = new Chess(fen);
-                const from = result.move.slice(0,2);
-                const to = result.move.slice(2,4);
-                const promotion = result.move.length > 4 ? result.move[4] : undefined;
-                const mv = chess.move({ from, to, promotion });
-                if (mv) san = mv.san;
+        // Validate move and enrich response (san, from, to). If move invalid, try one recovery attempt (reinit engine and retry).
+        async function enrichAndValidateMove(moveObj) {
+            const payload = Object.assign({}, moveObj);
+            if (!moveObj || !moveObj.move) return { payload, valid: false, reason: 'No move returned by engine' };
+
+            const move = moveObj.move;
+            // long-algebraic like e2e4
+            const isLong = /^[a-h][1-8][a-h][1-8][qrbn]?$/i.test(move);
+            if (isLong) {
+                const from = move.slice(0,2);
+                const to = move.slice(2,4);
+                const promotion = move.length > 4 ? move[4] : undefined;
+                try {
+                    const chess = new Chess(fen);
+                    const mv = chess.move({ from, to, promotion });
+                    if (mv) {
+                        payload.san = mv.san;
+                        payload.from = from;
+                        payload.to = to;
+                        return { payload, valid: true };
+                    } else {
+                        return { payload, valid: false, reason: `Invalid move: ${JSON.stringify({ from, to })}` };
+                    }
+                } catch (e) {
+                    return { payload, valid: false, reason: `Failed to compute SAN: ${e.message}` };
+                }
+            } else {
+                // Not long algebraic: we leave as-is; clients can parse 'move' field.
+                return { payload, valid: true };
             }
-        } catch (e) {
-            console.warn('Failed to compute SAN for engine move:', e.message);
         }
 
-        const responsePayload = Object.assign({}, result, { san });
-        
+        let { payload, valid, reason } = await enrichAndValidateMove(result);
+
+        if (!valid) {
+            console.warn(`Engine move invalid: ${reason}. Attempting reinit+retry...`);
+            // Attempt recovery: reinit adapter and retry once
+            try {
+                const adapter = chessFacade.getAdapter(engine);
+                if (adapter) {
+                    await adapter.shutdown();
+                    // small pause to ensure process is gone
+                    await new Promise(r => setTimeout(r, 200));
+                    await adapter.initialize();
+                    const retryResult = await adapter.getBestMove(fen, level);
+                    const enriched = await enrichAndValidateMove(retryResult);
+                    if (enriched.valid) {
+                        payload = enriched.payload;
+                        valid = true;
+                        result = retryResult;
+                    } else {
+                        // attach logs path if present
+                        const logPath = adapter.logPath || null;
+                        const errMsg = `Engine returned invalid move after retry: ${enriched.reason}` + (logPath ? `; log: ${logPath}` : '');
+                        throw new Error(errMsg);
+                    }
+                } else {
+                    throw new Error('Adapter not found for recovery');
+                }
+            } catch (err) {
+                console.error('Recovery attempt failed:', err.message);
+                return res.status(500).json({ error: err.message, success: false });
+            }
+        }
+
+        // include engine move fields
+        const responsePayload = Object.assign({}, result, payload);
+
         res.json({
             success: true,
             request: { fen, engine, level },
