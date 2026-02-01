@@ -91,6 +91,9 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **crafty** | `/usr/games/crafty` | XBoard |
 | **gnuchess** | `/usr/games/gnuchess` | XBoard |
 | **glaurung** | `/usr/games/glaurung` | UCI |
+| **ethereal** | `/usr/games/ethereal-chess` or `ethereal-chess` (in PATH) | UCI |
+
+> Tip: If the engine binary is in a non-standard location, set the `ETHEREAL_PATH` environment variable to its full path.
 
 > Note: XBoard engines are driven using an XBoard-style handshake (eg. `xboard`/`protover`) and may use `depth`/`time` commands instead of UCI options. Level mapping for XBoard engines is approximated (e.g., level -> depth 1..6); see adapters for details.
 
