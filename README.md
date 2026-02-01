@@ -77,9 +77,19 @@ node test/api.test.js
 
 ## Available Engines
 
-- **Stockfish**: `/usr/games/stockfish` (UCI protocol)
-- **Fruit**: `/usr/games/fruit` (UCI protocol)
-- **Toga2**: `/usr/games/toga2` (UCI protocol)
+The API supports multiple engines. Below is a quick reference showing each engine's executable path and the protocol it speaks:
+
+| Engine | Executable path | Protocol |
+|--------|------------------|----------|
+| **stockfish** | `/usr/games/stockfish` | UCI |
+| **fruit** | `/usr/games/fruit` | UCI |
+| **toga2** | `/usr/games/toga2` | UCI |
+| **phalanx** | `/usr/games/phalanx` | XBoard |
+| **sjeng** | `/usr/games/sjeng` | XBoard |
+| **crafty** | `/usr/games/crafty` | XBoard |
+| **gnuchess** | `/usr/games/gnuchess` | XBoard |
+
+> Note: XBoard engines are driven using an XBoard-style handshake (eg. `xboard`/`protover`) and may use `depth`/`time` commands instead of UCI options. Level mapping for XBoard engines is approximated (e.g., level -> depth 1..6); see adapters for details.
 
 ## AI Consumer Guide
 
@@ -100,7 +110,7 @@ const response = await fetch('https://daviszinhovm.westus2.cloudapp.azure.com/ap
     },
     body: JSON.stringify({
         fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        engine: "stockfish",  // optional: "stockfish" | "fruit" | "toga2"
+        engine: "stockfish",  // optional: engines include: stockfish, fruit, toga2 (UCI) and phalanx, sjeng, crafty, gnuchess (XBoard)
         level: 5              // optional: 1-20 (strength level)
     })
 });
