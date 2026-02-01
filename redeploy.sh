@@ -1,17 +1,49 @@
 #!/bin/bash
 
-echo "🔄 Starting Chess Engine API redeploy..."
+echo "🔄 Starting Chess Engine API redeploy with nginx config preservation..."
 
 # Variables
 APP_DIR="/home/daviszinho/ChessEngineAPI"
 APP_NAME="chess-engine-api"
 NODE_PORT=3000
 NGINX_CONFIG="/etc/nginx/sites-available/chess-api.conf"
+NGINX_BACKUP_DIR="/home/daviszinho/nginx-backups"
 
 # Function to check if process is running
 is_process_running() {
     pgrep -f "$1" > /dev/null
     return $?
+}
+
+# Function to backup nginx configuration
+backup_nginx_config() {
+    echo "💾 Backing up nginx configuration..."
+    
+    # Create backup directory if it doesn't exist
+    sudo mkdir -p "$NGINX_BACKUP_DIR"
+    
+    # Create timestamped backup
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    sudo cp "$NGINX_CONFIG" "$NGINX_BACKUP_DIR/chess-api.conf.backup_$TIMESTAMP"
+    
+    echo "✅ Nginx configuration backed up to: chess-api.conf.backup_$TIMESTAMP"
+}
+
+# Function to restore nginx configuration
+restore_nginx_config() {
+    echo "🔧 Restoring nginx configuration..."
+    
+    # Get latest backup
+    LATEST_BACKUP=$(sudo ls -t "$NGINX_BACKUP_DIR/chess-api.conf.backup_"* 2>/dev/null | head -1)
+    
+    if [ -n "$LATEST_BACKUP" ]; then
+        sudo cp "$LATEST_BACKUP" "$NGINX_CONFIG"
+        echo "✅ Restored nginx configuration from backup"
+        return 0
+    else
+        echo "❌ No nginx backup found"
+        return 1
+    fi
 }
 
 # Function to stop processes
@@ -87,22 +119,33 @@ check_health() {
     return 0
 }
 
-# Function to reload nginx
+# Function to reload nginx (without modifying config)
 reload_nginx() {
-    echo "🌐 Reloading nginx..."
+    echo "🌐 Reloading nginx (preserving current configuration)..."
     
     if sudo nginx -t; then
         sudo systemctl reload nginx
         echo "✅ Nginx reloaded successfully"
+        echo "📍 Current configuration preserved for ports 80 and 443"
     else
-        echo "❌ Nginx configuration test failed"
-        return 1
+        echo "⚠️  Nginx configuration test failed, attempting to restore from backup..."
+        restore_nginx_config
+        if sudo nginx -t; then
+            sudo systemctl reload nginx
+            echo "✅ Nginx restored and reloaded successfully"
+        else
+            echo "❌ Failed to restore nginx configuration"
+            return 1
+        fi
     fi
 }
 
 # Main deployment process
 main() {
     echo "📍 Working directory: $APP_DIR"
+    
+    # Backup current nginx configuration before making any changes
+    backup_nginx_config
     
     # Fetch latest from repository
     echo "📥 Fetching latest from repository..."
@@ -114,7 +157,7 @@ main() {
     fi
     git pull origin main
     if [ $? -ne 0 ]; then
-        echo "❌ git fetch failed"
+        echo "❌ git pull failed"
         exit 1
     fi
     
@@ -129,12 +172,19 @@ main() {
     
     # Check health
     if check_health; then
+        # Reload nginx (preserves current working configuration)
+        reload_nginx
+        
         echo "🎉 Redeploy completed successfully!"
         echo ""
         echo "📊 Application status:"
         echo "  Main API: http://localhost:$NODE_PORT"
-        echo "  Proxy: http://localhost"
-        echo "  Health check: http://localhost/api/health"
+        echo "  HTTPS (443): https://localhost"
+        echo "  HTTP (80): http://localhost (redirects to HTTPS)"
+        echo "  Health check: https://localhost/api/health"
+        echo ""
+        echo "🔧 Nginx configuration preserved for both ports"
+        echo "💾 Nginx backups available in: $NGINX_BACKUP_DIR"
         echo ""
         echo "📝 Logs:"
         echo "  Main app: $APP_DIR/app.log"
