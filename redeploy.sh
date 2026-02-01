@@ -7,7 +7,9 @@ APP_DIR="/home/daviszinho/ChessEngineAPI"
 APP_NAME="chess-engine-api"
 NODE_PORT=3000
 NGINX_CONFIG="/etc/nginx/sites-available/chess-api.conf"
+NGINX_ENABLED="/etc/nginx/sites-enabled/chess-api.conf"
 NGINX_BACKUP_DIR="/home/daviszinho/nginx-backups"
+DOMAIN="daviszinhovm.westus2.cloudapp.azure.com"
 
 # Function to check if process is running
 is_process_running() {
@@ -43,6 +45,29 @@ restore_nginx_config() {
     else
         echo "❌ No nginx backup found"
         return 1
+    fi
+}
+
+# Function to update nginx configuration from repo
+update_nginx_config() {
+    echo "🔧 Updating nginx configuration from repository..."
+    
+    if [ -f "$APP_DIR/nginx/chess-api.conf" ]; then
+        # Ensure SSL directory exists (in case it's a new setup)
+        sudo mkdir -p /etc/ssl/private /etc/ssl/certs
+        
+        # Copy the config
+        sudo cp "$APP_DIR/nginx/chess-api.conf" "$NGINX_CONFIG"
+        
+        # Ensure it's enabled
+        if [ ! -L "$NGINX_ENABLED" ]; then
+            sudo ln -s "$NGINX_CONFIG" "$NGINX_ENABLED"
+            # Remove default if it exists
+            sudo rm -f /etc/nginx/sites-enabled/default
+        fi
+        echo "✅ Nginx configuration updated"
+    else
+        echo "⚠️  Nginx configuration file not found in repo: $APP_DIR/nginx/chess-api.conf"
     fi
 }
 
@@ -83,14 +108,15 @@ start_application() {
     cd "$APP_DIR"
     
     # Start main application in background
-    nohup node src/server.js > app.log 2>&1 &
+    # Using PORT environment variable to ensure it matches NODE_PORT
+    nohup env PORT=$NODE_PORT node src/server.js > app.log 2>&1 &
     APP_PID=$!
     
-    # Start proxy server in background
-    nohup node proxy-server.js > proxy.log 2>&1 &
-    PROXY_PID=$!
+    # Note: proxy-server.js is deprecated in favor of Nginx
+    # But we keep the PID variable for script compatibility
+    PROXY_PID="N/A (using Nginx)"
     
-    echo "✅ Application started with PIDs: $APP_PID (main), $PROXY_PID (proxy)"
+    echo "✅ Application started with PID: $APP_PID (main)"
 }
 
 # Function to check application health
@@ -108,31 +134,31 @@ check_health() {
         return 1
     fi
     
-    # Check if proxy is responding
-    if curl -s http://localhost/api/health > /dev/null; then
-        echo "✅ Proxy server is healthy"
+    # Check if Nginx is responding on port 80 (should redirect or serve)
+    if curl -s -I http://localhost/api/health | grep -q "200\|301\|302"; then
+        echo "✅ Nginx is responding on port 80"
     else
-        echo "❌ Proxy server health check failed"
+        echo "❌ Nginx is not responding on port 80"
         return 1
     fi
     
     return 0
 }
 
-# Function to reload nginx (without modifying config)
+# Function to reload nginx
 reload_nginx() {
-    echo "🌐 Reloading nginx (preserving current configuration)..."
+    echo "🌐 Reloading nginx with updated configuration..."
     
     if sudo nginx -t; then
-        sudo systemctl reload nginx
-        echo "✅ Nginx reloaded successfully"
-        echo "📍 Current configuration preserved for ports 80 and 443"
+        sudo systemctl restart nginx
+        echo "✅ Nginx restarted successfully"
+        echo "📍 Serving on ports 80 and 443 for $DOMAIN"
     else
         echo "⚠️  Nginx configuration test failed, attempting to restore from backup..."
         restore_nginx_config
         if sudo nginx -t; then
-            sudo systemctl reload nginx
-            echo "✅ Nginx restored and reloaded successfully"
+            sudo systemctl restart nginx
+            echo "✅ Nginx restored and restarted successfully"
         else
             echo "❌ Failed to restore nginx configuration"
             return 1
@@ -167,6 +193,9 @@ main() {
     # Install dependencies
     install_dependencies
     
+    # Update Nginx configuration from repo
+    update_nginx_config
+    
     # Start application
     start_application
     
@@ -178,12 +207,11 @@ main() {
         echo "🎉 Redeploy completed successfully!"
         echo ""
         echo "📊 Application status:"
-        echo "  Main API: http://localhost:$NODE_PORT"
-        echo "  HTTPS (443): https://localhost"
-        echo "  HTTP (80): http://localhost (redirects to HTTPS)"
-        echo "  Health check: https://localhost/api/health"
+        echo "  Main API (internal): http://localhost:$NODE_PORT"
+        echo "  External URL:        https://$DOMAIN/api/engines"
+        echo "  Health check:        https://$DOMAIN/api/health"
         echo ""
-        echo "🔧 Nginx configuration preserved for both ports"
+        echo "🔧 Nginx is active on both ports 80 (redirect) and 443 (SSL)"
         echo "💾 Nginx backups available in: $NGINX_BACKUP_DIR"
         echo ""
         echo "📝 Logs:"
