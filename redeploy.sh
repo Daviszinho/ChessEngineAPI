@@ -203,14 +203,14 @@ main() {
     # Update Nginx configuration from repo
     update_nginx_config
     
+    # Reload Nginx FIRST so it can start serving
+    reload_nginx || exit 1
+    
     # Start application
     start_application
     
     # Check health
     if check_health; then
-        # Reload nginx (preserves current working configuration)
-        reload_nginx
-        
         echo "🎉 Redeploy completed successfully!"
         echo ""
         echo "📊 Application status:"
