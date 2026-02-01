@@ -82,7 +82,9 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | Engine | Executable path | Protocol |
 |--------|------------------|----------|
 | **stockfish** | `/usr/games/stockfish` | UCI |
-| **fruit** | `/usr/games/fruit` | UCI |
+| **fruit** | `/usr/games/fruit_21_static` or `fruit_21_static` (in PATH) | UCI |
+
+> Tip: If the engine binary is in a non-standard location, set the `FRUIT_PATH` environment variable to its full path.
 | **toga2** | `/usr/games/toga2` | UCI |
 | **phalanx** | `/usr/games/phalanx` | XBoard |
 | **sjeng** | `/usr/games/sjeng` | XBoard |

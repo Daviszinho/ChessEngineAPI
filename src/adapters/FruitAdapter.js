@@ -1,9 +1,14 @@
 const ChessEngineAdapter = require('./ChessEngineAdapter');
 const path = require('path');
+const fs = require('fs');
 
 class FruitAdapter extends ChessEngineAdapter {
     constructor() {
-        super(path.join(__dirname, '../../fruit_21_linux/fruit_21_static'));
+        // Allow override via env var, packaged fallback, or plain executable 'fruit_21_static' in PATH
+        const envPath = process.env.FRUIT_PATH;
+        const packaged = path.join(__dirname, '../../fruit_21_linux/fruit_21_static');
+        let resolvedPath = envPath || (fs.existsSync(packaged) ? packaged : 'fruit_21_static');
+        super(resolvedPath);
         this.engineName = 'Fruit';
     }
 
