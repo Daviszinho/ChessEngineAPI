@@ -3,19 +3,33 @@ const ChessEngineAdapter = require('./ChessEngineAdapter');
 
 class GNUChessAdapter extends ChessEngineAdapter {
     constructor() {
-        super('/usr/games/gnuchess');
+        // Use XBoard mode and allow more time for initialization
+        super('/usr/games/gnuchess', [], { initTimeoutMs: 15000 });
         this.engineName = 'GNUChess';
         console.log('GNUChessAdapter constructor called');
     }
 
 
 
+    // XBoard handshake - declare protocol support
+    handshake() {
+        this.sendCommand('xboard');
+        this.sendCommand('protover 2');
+    }
+
     handleEngineOutput(line) {
         // Clean up the line by removing control characters
-        const cleanLine = line.replace(/[\x00-\x1F\x7F]/g, '');
-        
+        const cleanLine = line.replace(/[\x00-\x1F\x7F]/g, '').trim();
+
+        // Detect common startup prompts (e.g., GNUChess banner or prompt) and mark ready
+        if (!this.isReady && (cleanLine.toLowerCase().startsWith('gnu') || /^\[.*\]$/.test(cleanLine) || /gnu chess/i.test(cleanLine))) {
+            console.log(`${this.engineName} detected ready via startup line: '${cleanLine}'`);
+            this.emit('ready');
+            return;
+        }
+
         // GNUChess outputs moves in various formats
-        const moveMatch = cleanLine.match(/^(?:White|Black)\s*mov(?:es?)\s*:?\s*([a-h][1-8][a-h][1-8][qrbn]?|[KQRBN][a-h][1-8]|[KQRBN]x[a-h][1-8]|[a-h]x[a-h][1-8]|[a-h][1-8]=[KQRBN]|[a-h][1-8]\+|[a-h][1-8]#|[O-O-O]|[O-O])$/i);
+        const moveMatch = cleanLine.match(/^(?:White|Black)\s*mov(?:es?)\s*:?\s*([a-h][1-8][a-h][1-8][qrbn]?|[KQRBN][a-h][1-8]|[KQRBN]x[a-h][1-8]|[a-h]x[a-h][1-8]|[a-h][1-8]=[KQRBN]|[a-h][1-8]\+|[a-h][1-8]#|[O-O-O]|[O-O])$/i) || cleanLine.match(/^move\s+([a-h][1-8][a-h][1-8][qrbn]?)/i);
         if (moveMatch) {
             this.emit('bestmove', {
                 engine: this.engineName,
