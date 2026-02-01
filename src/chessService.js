@@ -13,6 +13,8 @@ async function initializeEngines() {
     try {
         chessFacade.registerEngine('stockfish', new StockfishAdapter());
         chessFacade.registerEngine('gnuchess', new GNUChessAdapter());
+        // Expose getBestMoveWithRetry for engines that may die and need a retry
+        // (no change to facade API; adapters handle retries internally)
         chessFacade.registerEngine('fruit', new FruitAdapter());
         chessFacade.registerEngine('toga2', new Toga2Adapter());
         chessFacade.registerEngine('phalanx', new PhalanxAdapter());
