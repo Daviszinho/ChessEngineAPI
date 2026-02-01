@@ -140,8 +140,8 @@ check_health() {
         return 1
     fi
     
-    # Check if Nginx is responding on port 80 (should redirect or serve)
-    if curl -s -I http://localhost/api/health | grep -q "200\|301\|302"; then
+    # Check if Nginx is responding on port 80 (should redirect 308 or serve 200)
+    if curl -s -I http://localhost/api/health | grep -q "200\|301\|302\|308"; then
         echo "✅ Nginx is responding on port 80"
     else
         echo "❌ Nginx is not responding on port 80"
@@ -225,11 +225,8 @@ main() {
         echo "  Main app: $APP_DIR/app.log"
         echo "  Proxy: $APP_DIR/proxy.log"
     else
-        echo "❌ Health check failed. Checking logs..."
         echo "=== Main App Log ==="
         tail -20 app.log 2>/dev/null || echo "No main app log found"
-        echo "=== Proxy Log ==="
-        tail -20 proxy.log 2>/dev/null || echo "No proxy log found"
         exit 1
     fi
 }
