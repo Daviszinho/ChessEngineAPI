@@ -70,7 +70,10 @@ class SjengAdapter extends ChessEngineAdapter {
         }
 
         // XBoard-style: detect initial prompt or moves
-        if (!this.isReady && /^\[.*\]$/.test(line.trim())) {
+        const trimmed = line.trim();
+        // Sjeng prints a prompt like 'Sjeng:' on startup; also accept bracketed prompts used by other engines
+        if (!this.isReady && (/^\[.*\]$/.test(trimmed) || /^sjeng:\s*$/.test(trimmed) || /^sjeng:/i.test(trimmed))) {
+            console.log(`${this.engineName} detected ready via prompt: '${trimmed}'`);
             this.emit('ready');
             return;
         }
