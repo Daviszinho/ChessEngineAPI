@@ -62,10 +62,10 @@ update_nginx_config() {
         # Ensure it's enabled
         if [ ! -L "$NGINX_ENABLED" ]; then
             sudo ln -s "$NGINX_CONFIG" "$NGINX_ENABLED"
-            # Remove default if it exists
-            sudo rm -f /etc/nginx/sites-enabled/default
         fi
-        echo "✅ Nginx configuration updated"
+        # ALWAYS remove default if it exists to avoid port 80 conflicts
+        sudo rm -f /etc/nginx/sites-enabled/default
+        echo "✅ Nginx configuration updated and default site removed"
     else
         echo "⚠️  Nginx configuration file not found in repo: $APP_DIR/nginx/chess-api.conf"
     fi
