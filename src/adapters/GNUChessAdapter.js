@@ -28,6 +28,11 @@ class GNUChessAdapter extends ChessEngineAdapter {
             return;
         }
 
+        // Log engine output to help diagnose why no move is produced
+        if (cleanLine) {
+            console.log(`[${this.engineName}] stdout: ${cleanLine}`);
+        }
+
         // GNUChess outputs moves in various formats
         const moveMatch = cleanLine.match(/^(?:White|Black)\s*mov(?:es?)\s*:?\s*([a-h][1-8][a-h][1-8][qrbn]?|[KQRBN][a-h][1-8]|[KQRBN]x[a-h][1-8]|[a-h]x[a-h][1-8]|[a-h][1-8]=[KQRBN]|[a-h][1-8]\+|[a-h][1-8]#|[O-O-O]|[O-O])$/i) || cleanLine.match(/^move\s+([a-h][1-8][a-h][1-8][qrbn]?)/i);
         if (moveMatch) {
@@ -50,7 +55,7 @@ class GNUChessAdapter extends ChessEngineAdapter {
             const timeout = setTimeout(() => {
                 this.removeAllListeners('bestmove');
                 reject(new Error('Move calculation timeout'));
-            }, 10000); // 10 second timeout
+            }, 30000); // 30 second timeout
 
             this.once('bestmove', (move) => {
                 clearTimeout(timeout);
