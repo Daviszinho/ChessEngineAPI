@@ -88,6 +88,7 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **sjeng** | `/usr/games/sjeng` | XBoard |
 | **crafty** | `/usr/games/crafty` | XBoard |
 | **gnuchess** | `/usr/games/gnuchess` | XBoard |
+| **glaurung** | `/usr/games/glaurung` | UCI |
 
 > Note: XBoard engines are driven using an XBoard-style handshake (eg. `xboard`/`protover`) and may use `depth`/`time` commands instead of UCI options. Level mapping for XBoard engines is approximated (e.g., level -> depth 1..6); see adapters for details.
 
