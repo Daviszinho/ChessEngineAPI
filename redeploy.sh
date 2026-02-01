@@ -76,15 +76,21 @@ stop_processes() {
     echo "🛑 Stopping running processes..."
     
     # Kill Node.js processes
-    pkill -f "node.*server.js" 2>/dev/null || true
+    pkill -f "src/server.js" 2>/dev/null || true
     pkill -f "proxy-server.js" 2>/dev/null || true
+    
+    # Stop the custom nginx service if it's running (to avoid port conflicts)
+    if systemctl is-active --quiet chess-api-nginx.service; then
+        echo "🛑 Stopping custom chess-api-nginx service..."
+        sudo systemctl stop chess-api-nginx.service 2>/dev/null || true
+        sudo systemctl disable chess-api-nginx.service 2>/dev/null || true
+    fi
     
     # Wait a moment for processes to stop
     sleep 2
     
     # Force kill if still running
     pkill -9 -f "node.*server.js" 2>/dev/null || true
-    pkill -9 -f "proxy-server.js" 2>/dev/null || true
 }
 
 # Function to install dependencies
@@ -149,20 +155,21 @@ check_health() {
 reload_nginx() {
     echo "🌐 Reloading nginx with updated configuration..."
     
+    # Check syntax first
     if sudo nginx -t; then
-        sudo systemctl restart nginx
-        echo "✅ Nginx restarted successfully"
-        echo "📍 Serving on ports 80 and 443 for $DOMAIN"
+        # Try to restart the system nginx
+        if sudo systemctl restart nginx; then
+            echo "✅ Nginx restarted successfully"
+            echo "📍 Serving on ports 80 and 443 for $DOMAIN"
+        else
+            echo "❌ Failed to restart nginx service. Check 'journalctl -xeu nginx.service'"
+            return 1
+        fi
     else
         echo "⚠️  Nginx configuration test failed, attempting to restore from backup..."
         restore_nginx_config
-        if sudo nginx -t; then
-            sudo systemctl restart nginx
-            echo "✅ Nginx restored and restarted successfully"
-        else
-            echo "❌ Failed to restore nginx configuration"
-            return 1
-        fi
+        sudo systemctl restart nginx
+        return 1
     fi
 }
 
