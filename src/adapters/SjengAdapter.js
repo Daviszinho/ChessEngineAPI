@@ -100,8 +100,20 @@ class SjengAdapter extends ChessEngineAdapter {
         if (!moveMatch) moveMatch = trimmed.match(/(^|\s)([a-h][1-8][a-h][1-8][qrbn]?)(\s|$)/i);
 
         if (moveMatch) {
-            const mv = (Array.isArray(moveMatch) ? (moveMatch[1] || moveMatch[2]) : moveMatch);
-            const move = (mv || '').trim();
+            // Find the first capture group that looks like a coordinate
+            let move = null;
+            if (Array.isArray(moveMatch)) {
+                for (let i = 1; i < moveMatch.length; i++) {
+                    const g = moveMatch[i];
+                    if (g && /^[a-h][1-8][a-h][1-8][qrbn]?$/i.test(g.trim())) {
+                        move = g.trim();
+                        break;
+                    }
+                }
+            } else if (typeof moveMatch === 'string') {
+                move = moveMatch.trim();
+            }
+
             if (move) {
                 if (this.logPath) { const fs = require('fs'); fs.appendFileSync(this.logPath, `BESTMOVE: ${move}\n`); }
                 console.log(`${this.engineName} parsed move: ${move}`);
