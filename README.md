@@ -95,7 +95,7 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **glaurung** | `/usr/games/glaurung` | UCI |
 | **ethereal** | `/usr/games/ethereal-chess` or `ethereal-chess` (in PATH) | UCI |
 
-> Tip: If the engine binary is in a non-standard location, set the `ETHEREAL_PATH` environment variable to its full path.
+> **Note:** Ethereal is supported but **disabled by default** due to observed instability (SIGSEGV). To enable it, set `ENABLE_ETHEREAL=true` in the environment before starting the server. If enabled, the engine must be present (`ETHEREAL_PATH` can override its path).
 
 > Note: XBoard engines are driven using an XBoard-style handshake (eg. `xboard`/`protover`) and may use `depth`/`time` commands instead of UCI options. Level mapping for XBoard engines is approximated (e.g., level -> depth 1..6); see adapters for details.
 

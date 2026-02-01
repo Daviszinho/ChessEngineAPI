@@ -23,7 +23,13 @@ async function initializeEngines() {
         chessFacade.registerEngine('sjeng', new SjengAdapter());
         chessFacade.registerEngine('crafty', new CraftyAdapter());
         chessFacade.registerEngine('glaurung', new GlaurungAdapter());
-        chessFacade.registerEngine('ethereal', new EtherealAdapter());
+        // Ethereal is supported but disabled by default due to stability concerns.
+        // Enable with: ENABLE_ETHEREAL=true
+        if (process.env.ENABLE_ETHEREAL === 'true') {
+            chessFacade.registerEngine('ethereal', new EtherealAdapter());
+        } else {
+            console.warn('Ethereal engine is disabled by default. Set ENABLE_ETHEREAL=true to enable it.');
+        }
         
         console.log('Available engines:', chessFacade.getAvailableEngines());
     } catch (error) {
