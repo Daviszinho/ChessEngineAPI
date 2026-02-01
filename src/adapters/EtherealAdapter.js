@@ -11,6 +11,8 @@ class EtherealAdapter extends ChessEngineAdapter {
         const resolvedPath = envPath || (fs.existsSync(packaged) ? packaged : 'ethereal-chess');
         super(resolvedPath);
         this.engineName = 'Ethereal';
+        // predefine a logPath so failures during init are easier to find
+        this.logPath = `/tmp/ethereal-${Date.now()}.log`;
     }
 
     handleEngineOutput(line) {
@@ -33,13 +35,10 @@ class EtherealAdapter extends ChessEngineAdapter {
 
     setupGame(fen, level) {
         super.setupGame(fen, level);
-        try {
-            const cpus = Math.max(1, os.cpus().length || 1);
-            const threads = Math.min(4, cpus);
-            this.sendCommand(`setoption name Threads value ${threads}`);
-        } catch (e) {
-            // best-effort
-        }
+        // Use conservative defaults to avoid crashes on some builds
+        this.sendCommand('setoption name Ponder value false');
+        this.sendCommand('setoption name Threads value 1');
+        this.sendCommand('setoption name Hash value 16');
         this.sendCommand(`setoption name Skill Level value ${Math.max(0, Math.min(20, level))}`);
     }
 }

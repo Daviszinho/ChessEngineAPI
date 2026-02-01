@@ -13,6 +13,8 @@ REST API facade that provides unified access to multiple chess engines (Stockfis
 ### GET /api/engines
 Returns available chess engines and supported levels.
 
+Response now includes health and log information for each engine: `{ name, healthy, crashCount, logPath }`. Engines that have crashed repeatedly will be temporarily marked unhealthy; check `logPath` to inspect engine logs.
+
 ### POST /api/move
 Request body:
 ```json

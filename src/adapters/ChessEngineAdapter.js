@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const EventEmitter = require('events');
+const fs = require('fs');
 
 class ChessEngineAdapter extends EventEmitter {
     constructor(enginePath, engineArgs = [], options = {}) {
@@ -10,35 +11,85 @@ class ChessEngineAdapter extends EventEmitter {
         this.isReady = false;
         this.gameId = null;
         this.initTimeoutMs = options.initTimeoutMs || 10000; // default 10s, can be overridden by adapters
+
+        // Crash tracking / health gating
+        this.crashCount = 0;
+        this.lastCrashAt = null;
+        this.unhealthyUntil = null;
+        this.unhealthyThreshold = options.unhealthyThreshold || 3;
+        this.unhealthyCooldownMs = options.unhealthyCooldownMs || 60 * 1000; // 1 minute default
+
+        // Logging
+        this.logPath = options.logPath || null; // adapters may set this before initialize
+        this._logStream = null;
     }
 
     async initialize() {
         return new Promise((resolve, reject) => {
+            // Fail early if this engine is currently unhealthy due to repeated crashes
+            if (this.unhealthyUntil && Date.now() < this.unhealthyUntil) {
+                return reject(new Error(`Engine '${this.enginePath}' is temporarily disabled due to recent crashes; see logs: ${this.logPath || 'n/a'}`));
+            }
+
             this.process = spawn(this.enginePath, this.engineArgs || []);
             this.lastStderr = '';
             this._currentMoveReject = null;
 
+            // Create per-process log file if not set
+            if (!this.logPath) {
+                const name = (this.engineName || this.constructor.name || 'engine').toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+                this.logPath = `/tmp/${name}-${Date.now()}.log`;
+            }
+
+            try {
+                this._logStream = fs.createWriteStream(this.logPath, { flags: 'a' });
+            } catch (e) {
+                // if we can't create a log, continue without it
+                this._logStream = null;
+            }
+
             this.process.on('error', (error) => {
                 clearTimeout(initTimeout);
+                if (this._logStream) this._logStream.write(`engine error: ${error.message}\n`);
                 reject(new Error(`Failed to start engine '${this.enginePath}': ${error.message}`));
             });
 
             this.process.on('close', (code, signal) => {
                 this.isReady = false;
+                this.lastCrashAt = Date.now();
+                this.crashCount = (this.crashCount || 0) + 1;
+
+                // if crashes exceed threshold, mark unhealthy for cooldown window
+                if (this.crashCount >= this.unhealthyThreshold) {
+                    this.unhealthyUntil = Date.now() + this.unhealthyCooldownMs;
+                    console.warn(`Engine ${this.enginePath} marked unhealthy until ${new Date(this.unhealthyUntil).toISOString()} after ${this.crashCount} crashes`);
+                }
+
                 console.warn(`Engine process exited with code ${code}, signal ${signal}`);
+                if (this._logStream) this._logStream.write(`engine exited with code=${code} signal=${signal}\n`);
+
                 // If we were waiting for a move, reject it immediately
                 if (this._currentMoveReject) {
                     const err = new Error(`Engine process exited unexpectedly (code=${code} signal=${signal})`);
                     this._currentMoveReject(err);
                     this._currentMoveReject = null;
                 }
-                // Also emit an error for global visibility
+                // Also emit an error for global visibility and crash event
                 this.emit('engine-exit', { code, signal });
+                this.emit('crash', { code, signal });
+
+                if (this._logStream) {
+                    this._logStream.end();
+                    this._logStream = null;
+                }
             });
 
             let buffer = '';
             this.process.stdout.on('data', (data) => {
-                buffer += data.toString();
+                const s = data.toString();
+                if (this._logStream) this._logStream.write(s);
+
+                buffer += s;
                 const lines = buffer.split('\n');
                 buffer = lines.pop();
                 
@@ -56,6 +107,7 @@ class ChessEngineAdapter extends EventEmitter {
                     this.lastStderr = this.lastStderr.slice(-2000);
                 }
                 console.error(`Engine stderr (${this.enginePath}): ${msg}`);
+                if (this._logStream) this._logStream.write(`stderr: ${msg}`);
             });
 
             let initTimeout = setTimeout(() => {
@@ -68,6 +120,9 @@ class ChessEngineAdapter extends EventEmitter {
             this.once('ready', () => {
                 clearTimeout(initTimeout);
                 this.isReady = true;
+                // successful init -> reset crash counter
+                this.crashCount = 0;
+                this.unhealthyUntil = null;
                 resolve();
             });
 

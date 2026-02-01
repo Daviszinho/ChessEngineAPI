@@ -14,7 +14,17 @@ app.use(express.json());
 
 app.get('/api/engines', (req, res) => {
     try {
-        const engines = chessFacade.getAvailableEngines();
+        const engineNames = chessFacade.getAvailableEngines();
+        const engines = engineNames.map(name => {
+            const adapter = chessFacade.getAdapter(name);
+            const unhealthy = adapter && adapter.unhealthyUntil && Date.now() < adapter.unhealthyUntil;
+            return {
+                name,
+                healthy: !unhealthy,
+                crashCount: adapter?.crashCount || 0,
+                logPath: adapter?.logPath || null
+            };
+        });
         res.json({ 
             engines,
             default: 'stockfish',
@@ -109,10 +119,11 @@ app.post('/api/move', validateMoveRequest, async (req, res) => {
         });
     } catch (error) {
         console.error('Move calculation error:', error);
-        res.status(500).json({ 
-            error: error.message,
-            success: false
-        });
+        const adapter = chessFacade.getAdapter(req.body?.engine);
+        const logPath = adapter?.logPath || null;
+        const payload = { error: error.message, success: false };
+        if (logPath) payload.log = logPath;
+        res.status(500).json(payload);
     }
 });
 
