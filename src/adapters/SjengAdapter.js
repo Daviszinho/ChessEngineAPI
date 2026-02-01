@@ -2,19 +2,19 @@ const ChessEngineAdapter = require('./ChessEngineAdapter');
 
 class SjengAdapter extends ChessEngineAdapter {
     constructor() {
-        // Start with UCI candidate by default; we will attempt several argument sets when initializing
-        super('/usr/games/sjeng', ['-uci'], { initTimeoutMs: 15000 });
+        // Prefer XBoard-style startup for Sjeng; fallback to UCI if needed
+        super('/usr/games/sjeng', [], { initTimeoutMs: 20000 });
         this.engineName = 'Sjeng';
         this.usingXBoard = false;
     }
 
     async initialize() {
         const attempts = [
-            ['-uci'],      // prefer UCI
             [],            // bare binary (often XBoard)
             ['-x'],        // explicit xboard flag
             ['-xboard'],   // alternate xboard flag
-            ['-x', '-o', '-'] // xboard with polling input off
+            ['-x', '-o', '-'], // xboard with polling input off
+            ['-uci']       // try UCI last as fallback
         ];
 
         let lastError = null;
@@ -41,6 +41,19 @@ class SjengAdapter extends ChessEngineAdapter {
 
         // All attempts failed
         throw new Error(`Sjeng initialization failed after attempts. Last error: ${lastError && lastError.message ? lastError.message : 'unknown'}`);
+    }
+
+    // Override handshake to support XBoard protocol when not using '-uci'
+    handshake() {
+        if (this.engineArgs && this.engineArgs.includes('-uci')) {
+            // UCI handshake
+            this.sendCommand('uci');
+        } else {
+            // XBoard handshake sequence - protover may help with features
+            this.sendCommand('xboard');
+            this.sendCommand('protover 2');
+            // Let engine settle; engine's startup text or prompt will indicate readiness
+        }
     }
 
     handleEngineOutput(line) {
