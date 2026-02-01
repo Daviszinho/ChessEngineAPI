@@ -2,13 +2,14 @@ const { spawn } = require('child_process');
 const EventEmitter = require('events');
 
 class ChessEngineAdapter extends EventEmitter {
-    constructor(enginePath, engineArgs = []) {
+    constructor(enginePath, engineArgs = [], options = {}) {
         super();
         this.enginePath = enginePath;
         this.engineArgs = engineArgs;
         this.process = null;
         this.isReady = false;
         this.gameId = null;
+        this.initTimeoutMs = options.initTimeoutMs || 10000; // default 10s, can be overridden by adapters
     }
 
     async initialize() {
@@ -55,7 +56,7 @@ class ChessEngineAdapter extends EventEmitter {
                     const stderrPreview = this.lastStderr ? ` Stderr (last lines): ${this.lastStderr.split('\n').slice(-5).join(' | ')}` : '';
                     reject(new Error(`Engine initialization timeout for '${this.enginePath}'.${stderrPreview}`));
                 }
-            }, 10000);
+            }, this.initTimeoutMs);
 
             this.once('ready', () => {
                 clearTimeout(initTimeout);

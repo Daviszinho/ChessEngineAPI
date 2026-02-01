@@ -2,30 +2,45 @@ const ChessEngineAdapter = require('./ChessEngineAdapter');
 
 class SjengAdapter extends ChessEngineAdapter {
     constructor() {
-        // Try UCI mode first
-        super('/usr/games/sjeng', ['-uci']);
+        // Start with UCI candidate by default; we will attempt several argument sets when initializing
+        super('/usr/games/sjeng', ['-uci'], { initTimeoutMs: 15000 });
         this.engineName = 'Sjeng';
         this.usingXBoard = false;
     }
 
     async initialize() {
-        try {
-            await super.initialize();
-            // If UCI handshake succeeded, keep using UCI
-            this.usingXBoard = false;
-        } catch (err) {
-            console.warn(`Sjeng UCI handshake failed: ${err.message}. Trying XBoard fallback.`);
-            // Try fallback to XBoard mode (no -uci arg)
-            this.engineArgs = [];
-            // Ensure previous process cleared
+        const attempts = [
+            ['-uci'],      // prefer UCI
+            [],            // bare binary (often XBoard)
+            ['-x'],        // explicit xboard flag
+            ['-xboard'],   // alternate xboard flag
+            ['-x', '-o', '-'] // xboard with polling input off
+        ];
+
+        let lastError = null;
+
+        for (const args of attempts) {
+            this.engineArgs = args;
             try {
+                console.log(`Sjeng: attempting initialize with args: ${args.join(' ') || '<none>'}`);
                 await super.initialize();
-                this.usingXBoard = true;
-            } catch (err2) {
-                // If fallback also fails, rethrow original error for context
-                throw new Error(`Sjeng initialization failed (UCI then XBoard). UCI error: ${err.message}; XBoard error: ${err2.message}`);
+                this.usingXBoard = !(args.includes('-uci'));
+                console.log(`Sjeng initialized with args: ${args.join(' ') || '<none>'}`);
+                return;
+            } catch (err) {
+                lastError = err;
+                console.warn(`Sjeng init with args [${args.join(' ')}] failed: ${err.message}`);
+                // Ensure we shut down any partially started process before next attempt
+                try {
+                    await this.shutdown();
+                } catch (e) {
+                    // ignore shutdown errors
+                }
             }
         }
+
+        // All attempts failed
+        throw new Error(`Sjeng initialization failed after attempts. Last error: ${lastError && lastError.message ? lastError.message : 'unknown'}`);
     }
 
     handleEngineOutput(line) {
