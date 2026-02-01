@@ -60,15 +60,26 @@ class GNUChessAdapter extends ChessEngineAdapter {
             }
         }
 
-        // GNUChess outputs moves in various formats
-        const moveMatch = cleanLine.match(/^(?:White|Black)\s*mov(?:es?)\s*:?\s*([a-h][1-8][a-h][1-8][qrbn]?|[KQRBN][a-h][1-8]|[KQRBN]x[a-h][1-8]|[a-h]x[a-h][1-8]|[a-h][1-8]=[KQRBN]|[a-h][1-8]\+|[a-h][1-8]#|[O-O-O]|[O-O])$/i) || cleanLine.match(/^move\s+([a-h][1-8][a-h][1-8][qrbn]?)/i);
+        // GNUChess outputs moves in various formats. Check a few additional common patterns (e.g. "My move is : b1c3", "1. ... b1c3")
+        let moveMatch = cleanLine.match(/^(?:White|Black)\s*mov(?:es?)\s*:?\s*([a-h][1-8][a-h][1-8][qrbn]?|[KQRBN][a-h][1-8]|[KQRBN]x[a-h][1-8]|[a-h]x[a-h][1-8]|[a-h][1-8]=[KQRBN]|[a-h][1-8]\+|[a-h][1-8]#|[O-O-O]|[O-O])$/i);
+        if (!moveMatch) moveMatch = cleanLine.match(/^move\s+([a-h][1-8][a-h][1-8][qrbn]?)/i);
+        if (!moveMatch) moveMatch = cleanLine.match(/My move is\s*:\s*([a-h][1-8][a-h][1-8][qrbn]?)/i);
+        if (!moveMatch) moveMatch = cleanLine.match(/^[0-9]+\.\s*\.\.\.\s*([a-h][1-8][a-h][1-8][qrbn]?)/i);
+        // fallback: a bare coordinate on the line
+        if (!moveMatch) moveMatch = cleanLine.match(/(^|\s)([a-h][1-8][a-h][1-8][qrbn]?)(\s|$)/i);
+
         if (moveMatch) {
-            if (this.logPath) { const fs = require('fs'); fs.appendFileSync(this.logPath, `BESTMOVE: ${moveMatch[1]}\n`); }
-            this.emit('bestmove', {
-                engine: this.engineName,
-                move: moveMatch[1],
-                ponder: null
-            });
+            const mv = (Array.isArray(moveMatch) ? (moveMatch[1] || moveMatch[2]) : moveMatch);
+            const move = (mv || '').trim();
+            if (move) {
+                if (this.logPath) { const fs = require('fs'); fs.appendFileSync(this.logPath, `BESTMOVE: ${move}\n`); }
+                console.log(`${this.engineName} parsed move: ${move}`);
+                this.emit('bestmove', {
+                    engine: this.engineName,
+                    move: move,
+                    ponder: null
+                });
+            }
         }
     }
 
