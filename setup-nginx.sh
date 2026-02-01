@@ -4,10 +4,14 @@ echo "Setting up Chess Engine API with nginx HTTPS..."
 
 # Generate SSL certificate
 echo "Generating SSL certificate..."
+# Make sure ACME folder exists for Let's Encrypt or manual challenge
+sudo mkdir -p /var/www/letsencrypt
+sudo chown -R $USER:www-data /var/www/letsencrypt
+
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/ssl/private/chess-api.key \
     -out /etc/ssl/certs/chess-api.crt \
-    -subj "/C=US/ST=State/L=City/O=ChessAPI/OU=Dev/CN=localhost"
+    -subj "/C=US/ST=State/L=City/O=ChessAPI/OU=Dev/CN=daviszinhovm.westus2.cloudapp.azure.com"
 
 # Copy nginx configuration
 echo "Setting up nginx configuration..."
