@@ -71,24 +71,36 @@ class CraftyAdapter extends ChessEngineAdapter {
         }
 
         // Parse move output
-        // Handle Crafty's LAN: "move Nb1c3", "move e2e4"
-        // Regex allows optional piece letter [PNBRQK] at start
-        let moveMatch = trimmed.match(/move\s+([PNBRQK])?([a-h][1-8][a-h][1-8][qrbn]?)/i);
+        // Handle Crafty's formats: 
+        // 1. "move Nb1c3" (LAN)
+        // 2. "move d5xe4" (Capture)
+        // 3. "move e2e4" (Coordinates)
+        // 4. "d5xe4" (Naked)
 
-        // Fallback for lines that are just the move or end with it
-        if (!moveMatch) moveMatch = trimmed.match(/(?:^|\s)([PNBRQK])?([a-h][1-8][a-h][1-8][qrbn]?)$/i);
+        // This regex looks for:
+        // - Optional "move " prefix
+        // - Optional piece letter [PNBRQK]
+        // - Source square [a-h][1-8]
+        // - Optional 'x' or '-' separator
+        // - Destination square [a-h][1-8]
+        // - Optional promotion [qrbn]
+        const moveRegex = /(?:\bmove\s+)?(?:[PNBRQK])?([a-h][1-8])[x-]?([a-h][1-8][qrbn]?)/i;
+        const moveMatch = trimmed.match(moveRegex);
 
         if (moveMatch) {
-            // moveMatch[2] is always the coordinate part [a-h][1-8][a-h][1-8]
-            const move = moveMatch[2];
-            console.log(`${this.engineName} parsed move from "${trimmed}" -> "${move}"`);
+            const source = moveMatch[1];
+            const dest = moveMatch[2];
+            const move = (source + dest).toLowerCase();
+
+            console.log(`${this.engineName} parsed complex move from "${trimmed}" -> "${move}"`);
             this.emit('bestmove', {
                 engine: this.engineName,
-                move: move.toLowerCase(),
+                move: move,
                 ponder: null
             });
             return;
         }
+
 
         super.handleEngineOutput(line);
     }
