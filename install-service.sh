@@ -1,20 +1,18 @@
 #!/bin/bash
 
-echo "Installing Chess Engine API Nginx service..."
+echo "Installing Chess Engine API services..."
 
-# Copy systemd service file
-sudo cp chess-api-nginx.service /etc/systemd/system/
-
-# Set proper permissions
-sudo chmod 644 /etc/systemd/system/chess-api-nginx.service
+# Copy API service file
+sudo cp chess-api.service /etc/systemd/system/
+sudo chmod 644 /etc/systemd/system/chess-api.service
 
 # Reload systemd
 sudo systemctl daemon-reload
 
-# Enable and start the service
-sudo systemctl enable chess-api-nginx.service
-sudo systemctl start chess-api-nginx.service
+# Enable and start the API service
+sudo systemctl enable chess-api.service
+sudo systemctl start chess-api.service
 
-echo "Service installed and started!"
-echo "Status: sudo systemctl status chess-api-nginx.service"
-echo "Logs: sudo journalctl -u chess-api-nginx.service -f"
+echo "API Service installed and started!"
+echo "Status: sudo systemctl status chess-api.service"
+echo "Logs: sudo journalctl -u chess-api.service -f"

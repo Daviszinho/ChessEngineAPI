@@ -110,20 +110,17 @@ install_dependencies() {
 
 # Function to start the application
 start_application() {
-    echo "🚀 Starting application..."
-    cd "$APP_DIR"
+    echo "🚀 Starting application via systemd..."
     
-    # Start main application in background
-    # Using PORT environment variable to ensure it matches NODE_PORT
-    nohup env PORT=$NODE_PORT node src/server.js > app.log 2>&1 &
-    APP_PID=$!
+    # Reload systemd and restart the service
+    sudo cp "$APP_DIR/chess-api.service" /etc/systemd/system/
+    sudo systemctl daemon-reload
+    sudo systemctl enable chess-api.service
+    sudo systemctl restart chess-api.service
     
-    # Note: proxy-server.js is deprecated in favor of Nginx
-    # But we keep the PID variable for script compatibility
-    PROXY_PID="N/A (using Nginx)"
-    
-    echo "✅ Application started with PID: $APP_PID (main)"
+    echo "✅ Application restarted via systemd"
 }
+
 
 # Function to check application health
 check_health() {
