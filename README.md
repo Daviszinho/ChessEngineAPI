@@ -89,13 +89,13 @@ The API supports multiple engines. Below is a quick reference showing each engin
 > Tip: If the engine binary is in a non-standard location, set the `FRUIT_PATH` environment variable to its full path.
 | **toga2** | `/usr/games/toga2` | UCI |
 | **phalanx** | `/usr/games/phalanx` | XBoard |
-| **sjeng** | `/usr/games/sjeng` | XBoard |
+| **sjeng** (disabled) | `/usr/games/sjeng` | XBoard |
 | **crafty** | `/usr/games/crafty` | XBoard |
 | **gnuchess** | `/usr/games/gnuchess` | XBoard |
 | **glaurung** | `/usr/games/glaurung` | UCI |
 | **ethereal** | `/usr/games/ethereal-chess` or `ethereal-chess` (in PATH) | UCI |
 
-> **Note:** Ethereal is supported but **disabled by default** due to observed instability (SIGSEGV). To enable it, set `ENABLE_ETHEREAL=true` in the environment before starting the server. If enabled, the engine must be present (`ETHEREAL_PATH` can override its path).
+> **Note:** Ethereal and Sjeng are supported but **disabled by default**. To enable them, set `ENABLE_ETHEREAL=true` or `ENABLE_SJENG=true` in the environment before starting the server. If enabled, the engine must be present. GNUChess is also disabled by default for resource reasons (enable with `ENABLE_GNUCHESS=true`).
 
 > Note: XBoard engines are driven using an XBoard-style handshake (eg. `xboard`/`protover`) and may use `depth`/`time` commands instead of UCI options. Level mapping for XBoard engines is approximated (e.g., level -> depth 1..6); see adapters for details.
 
@@ -123,7 +123,7 @@ const response = await fetch('https://daviszinhovm.westus2.cloudapp.azure.com/ap
     },
     body: JSON.stringify({
         fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        engine: "stockfish",  // optional: engines include: stockfish, fruit, toga2 (UCI) and phalanx, sjeng, crafty, gnuchess (XBoard)
+        engine: "stockfish",  // optional: engines include: stockfish, fruit, toga2 (UCI) and phalanx, crafty, gnuchess (XBoard)
         level: 5              // optional: 1-20 (strength level)
     })
 });

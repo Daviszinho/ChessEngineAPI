@@ -27,7 +27,13 @@ async function initializeEngines() {
         chessFacade.registerEngine('fruit', new FruitAdapter());
         chessFacade.registerEngine('toga2', new Toga2Adapter());
         chessFacade.registerEngine('phalanx', new PhalanxAdapter());
-        chessFacade.registerEngine('sjeng', new SjengAdapter());
+        // Sjeng is disabled by default.
+        // Enable with: ENABLE_SJENG=true
+        if (process.env.ENABLE_SJENG === 'true') {
+            chessFacade.registerEngine('sjeng', new SjengAdapter());
+        } else {
+            console.warn('Sjeng engine is disabled by default. Set ENABLE_SJENG=true to enable it.');
+        }
         chessFacade.registerEngine('crafty', new CraftyAdapter());
         chessFacade.registerEngine('glaurung', new GlaurungAdapter());
         // Ethereal is supported but disabled by default due to stability concerns.

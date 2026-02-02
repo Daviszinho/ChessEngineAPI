@@ -9,10 +9,10 @@ const moveRequestSchema = Joi.object({
             'any.required': 'FEN position is required'
         }),
     engine: Joi.string()
-        .valid('stockfish', 'gnuchess', 'fruit', 'toga2', 'phalanx', 'sjeng', 'crafty', 'glaurung')
+        .valid('stockfish', 'gnuchess', 'fruit', 'toga2', 'phalanx', 'crafty', 'glaurung')
         .default('stockfish')
         .messages({
-            'any.only': 'Invalid engine. Available: stockfish, gnuchess, fruit, toga2, phalanx, sjeng, crafty, glaurung'
+            'any.only': 'Invalid engine. Available: stockfish, gnuchess, fruit, toga2, phalanx, crafty, glaurung'
         }),
     level: Joi.number()
         .integer()
@@ -28,7 +28,7 @@ const moveRequestSchema = Joi.object({
 
 const validateMoveRequest = (req, res, next) => {
     const { error, value } = moveRequestSchema.validate(req.body);
-    
+
     if (error) {
         return res.status(400).json({
             error: 'Validation failed',
@@ -38,7 +38,7 @@ const validateMoveRequest = (req, res, next) => {
             }))
         });
     }
-    
+
     req.body = value;
     next();
 };

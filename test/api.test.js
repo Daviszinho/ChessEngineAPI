@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 
 function testAPI() {
     const testFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-    
+
     const testCases = [
         { engine: 'stockfish', level: 1 },
         { engine: 'stockfish', level: 10 },
@@ -11,7 +11,7 @@ function testAPI() {
         { engine: 'gnuchess', level: 3 },
         { engine: 'gnuchess', level: 8 },
         { engine: 'toga2', level: 5 },
-        { engine: 'sjeng', level: 5 },
+        // { engine: 'sjeng', level: 5 },
         { engine: 'crafty', level: 6 },
         { engine: 'glaurung', level: 3 }
     ];
@@ -45,15 +45,15 @@ function testAPI() {
 
     async function runAllTests() {
         console.log('Testing Chess Engine API...\n');
-        
+
         for (const testCase of testCases) {
             await runTest(testCase);
             await new Promise(resolve => setTimeout(resolve, 2000));
         }
-        
+
         console.log('\n=== Testing engines endpoint ===');
         const curlEngines = spawn('curl', ['http://localhost:3000/api/engines']);
-        
+
         curlEngines.stdout.on('data', (data) => {
             console.log(data.toString());
         });
