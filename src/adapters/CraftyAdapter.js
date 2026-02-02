@@ -62,7 +62,7 @@ class CraftyAdapter extends ChessEngineAdapter {
         }
 
         // Ready detection via prompt
-        if (!this.isReady && (/^crafty:/i.test(trimmed) || /^\[.*\]$/.test(trimmed))) {
+        if (!this.isReady && (/^crafty:/i.test(trimmed) || /^\[.*\]$/.test(trimmed) || /^White\(\d+\):/i.test(trimmed))) {
             console.log(`${this.engineName} detected ready via prompt: '${trimmed}'`);
             this.emit('ready');
         }
@@ -72,10 +72,10 @@ class CraftyAdapter extends ChessEngineAdapter {
         }
 
         // Parse move output
-        // Crafty's move output often looks like: "move e2e4" or "White (or Black) moves: e2e4"
-        let moveMatch = trimmed.match(/^move\s+([a-h][1-8][a-h][1-8][qrbn]?)/i);
-        if (!moveMatch) moveMatch = trimmed.match(/^(?:White|Black).*mov(?:es?)\s*:?.*([a-h][1-8][a-h][1-8][qrbn]?)/i);
-        if (!moveMatch) moveMatch = trimmed.match(/^([a-h][1-8][a-h][1-8][qrbn]?)$/i); // Naked move
+        // Crafty with 'output long' looks like: "move e2e4" or "White (1): move e2e4"
+        let moveMatch = trimmed.match(/move\s+([a-h][1-8][a-h][1-8][qrbn]?)/i);
+        if (!moveMatch) moveMatch = trimmed.match(/^(?:White|Black).*\b([a-h][1-8][a-h][1-8][qrbn]?)$/i);
+        if (!moveMatch) moveMatch = trimmed.match(/^([a-h][1-8][a-h][1-8][qrbn]?)$/i);
 
         if (moveMatch) {
             const move = moveMatch[1] || moveMatch[0];
@@ -97,7 +97,7 @@ class CraftyAdapter extends ChessEngineAdapter {
         console.log(`${this.engineName} setting up game: level=${level} FEN=${fen}`);
         this.sendCommand('new');
         this.sendCommand('easy'); // Turn off pondering
-        this.sendCommand('san 0'); // Force coordinate notation (e2e4 instead of e4)
+        this.sendCommand('output long'); // Correct command for Crafty to use coordinates
         this.sendCommand(`setboard ${fen}`);
 
         // Map level to search depth
