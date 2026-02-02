@@ -40,7 +40,7 @@ class CraftyAdapter extends ChessEngineAdapter {
 
     handshake() {
         this.awaitingFeature = true;
-        
+
         // Start XBoard protocol
         this.sendCommand('xboard');
         this.sendCommand('protover 2');
@@ -96,16 +96,17 @@ class CraftyAdapter extends ChessEngineAdapter {
     setupGame(fen, level) {
         console.log(`${this.engineName} setting up game: level=${level} FEN=${fen}`);
         this.sendCommand('new');
-        this.sendCommand('easy'); // Turn off pondering to prevent unexpected output
+        this.sendCommand('easy'); // Turn off pondering
+        this.sendCommand('san 0'); // Force coordinate notation (e2e4 instead of e4)
         this.sendCommand(`setboard ${fen}`);
-        
-        // Map level to time control or depth
-        // For Crafty, 'sd N' sets search depth to N
+
+        // Map level to search depth
         const depth = Math.max(1, Math.min(12, Math.floor(level * 1.5)));
         this.sendCommand(`sd ${depth}`);
-        
+
         this.sendCommand('go');
     }
+
 }
 
 module.exports = CraftyAdapter;
