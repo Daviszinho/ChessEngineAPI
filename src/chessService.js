@@ -14,7 +14,14 @@ const chessFacade = new ChessEngineFacade();
 async function initializeEngines() {
     try {
         chessFacade.registerEngine('stockfish', new StockfishAdapter());
-        chessFacade.registerEngine('gnuchess', new GNUChessAdapter());
+        // GNUChess is disabled by default due to high resource consumption on small VMs.
+        // Enable with: ENABLE_GNUCHESS=true
+        if (process.env.ENABLE_GNUCHESS === 'true') {
+            chessFacade.registerEngine('gnuchess', new GNUChessAdapter());
+        } else {
+            console.warn('GNUChess engine is disabled by default. Set ENABLE_GNUCHESS=true to enable it.');
+        }
+
         // Expose getBestMoveWithRetry for engines that may die and need a retry
         // (no change to facade API; adapters handle retries internally)
         chessFacade.registerEngine('fruit', new FruitAdapter());
@@ -30,7 +37,7 @@ async function initializeEngines() {
         } else {
             console.warn('Ethereal engine is disabled by default. Set ENABLE_ETHEREAL=true to enable it.');
         }
-        
+
         console.log('Available engines:', chessFacade.getAvailableEngines());
     } catch (error) {
         console.error('Failed to initialize engines:', error.message);
