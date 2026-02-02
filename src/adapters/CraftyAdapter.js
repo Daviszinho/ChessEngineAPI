@@ -48,6 +48,9 @@ class CraftyAdapter extends ChessEngineAdapter {
 
     handleEngineOutput(line) {
         const trimmed = (line || '').replace(/[^\S\r\n]+/g, ' ').trim();
+        if (!trimmed) return;
+
+        console.log(`[${this.engineName}] STDOUT: "${trimmed}"`);
 
         // XBoard feature negotiation
         if (this.awaitingFeature && /^feature\b/i.test(trimmed)) {
@@ -62,36 +65,34 @@ class CraftyAdapter extends ChessEngineAdapter {
         }
 
         // Ready detection via prompt
-        if (!this.isReady && (/^crafty:/i.test(trimmed) || /^\[.*\]$/.test(trimmed) || /^White\(\d+\):/i.test(trimmed))) {
+        if (!this.isReady && (/^crafty:/i.test(trimmed) || /^\[.*\]$/.test(trimmed) || /^White\(\d+\):/i.test(trimmed) || /^Black\(\d+\):/i.test(trimmed))) {
             console.log(`${this.engineName} detected ready via prompt: '${trimmed}'`);
             this.emit('ready');
         }
 
-        if (trimmed) {
-            console.log(`[${this.engineName}] stdout: ${trimmed}`);
-        }
-
         // Parse move output
-        // Crafty with 'output long' looks like: "move e2e4" or "White (1): move e2e4"
-        let moveMatch = trimmed.match(/move\s+([a-h][1-8][a-h][1-8][qrbn]?)/i);
-        if (!moveMatch) moveMatch = trimmed.match(/^(?:White|Black).*\b([a-h][1-8][a-h][1-8][qrbn]?)$/i);
-        if (!moveMatch) moveMatch = trimmed.match(/^([a-h][1-8][a-h][1-8][qrbn]?)$/i);
+        // Handle Crafty's LAN: "move Nb1c3", "move e2e4"
+        // Regex allows optional piece letter [PNBRQK] at start
+        let moveMatch = trimmed.match(/move\s+([PNBRQK])?([a-h][1-8][a-h][1-8][qrbn]?)/i);
+
+        // Fallback for lines that are just the move or end with it
+        if (!moveMatch) moveMatch = trimmed.match(/(?:^|\s)([PNBRQK])?([a-h][1-8][a-h][1-8][qrbn]?)$/i);
 
         if (moveMatch) {
-            const move = moveMatch[1] || moveMatch[0];
-            if (/^[a-h][1-8][a-h][1-8][qrbn]?$/i.test(move.trim())) {
-                console.log(`${this.engineName} parsed move: ${move.trim()}`);
-                this.emit('bestmove', {
-                    engine: this.engineName,
-                    move: move.trim(),
-                    ponder: null
-                });
-                return;
-            }
+            // moveMatch[2] is always the coordinate part [a-h][1-8][a-h][1-8]
+            const move = moveMatch[2];
+            console.log(`${this.engineName} parsed move from "${trimmed}" -> "${move}"`);
+            this.emit('bestmove', {
+                engine: this.engineName,
+                move: move.toLowerCase(),
+                ponder: null
+            });
+            return;
         }
 
         super.handleEngineOutput(line);
     }
+
 
     setupGame(fen, level) {
         console.log(`${this.engineName} setting up game: level=${level} FEN=${fen}`);
