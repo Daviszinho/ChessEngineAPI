@@ -71,19 +71,30 @@ class CraftyAdapter extends ChessEngineAdapter {
         }
 
         // Parse move output
-        // Handle Crafty's formats: 
-        // 1. "move Nb1c3" (LAN)
-        // 2. "move d5xe4" (Capture)
-        // 3. "move e2e4" (Coordinates)
-        // 4. "d5xe4" (Naked)
+        // 1. Check for Castling first (O-O-O or O-O)
+        const castleMatch = trimmed.match(/(?:\bmove\s+)?(O-O-O|O-O)/i);
+        if (castleMatch) {
+            const castle = castleMatch[1].toUpperCase();
+            let move = '';
+            // Determine side from current FEN (default to white if not present)
+            const side = (this.currentFen && this.currentFen.includes(' b ')) ? 'black' : 'white';
 
-        // This regex looks for:
-        // - Optional "move " prefix
-        // - Optional piece letter [PNBRQK]
-        // - Source square [a-h][1-8]
-        // - Optional 'x' or '-' separator
-        // - Destination square [a-h][1-8]
-        // - Optional promotion [qrbn]
+            if (castle === 'O-O-O') {
+                move = (side === 'white') ? 'e1c1' : 'e8c8';
+            } else {
+                move = (side === 'white') ? 'e1g1' : 'e8g8';
+            }
+
+            console.log(`${this.engineName} converted castle "${castle}" for ${side} -> "${move}"`);
+            this.emit('bestmove', {
+                engine: this.engineName,
+                move: move,
+                ponder: null
+            });
+            return;
+        }
+
+        // 2. Handle Complex/LAN moves (Nb1c3, d5xe4, e2e4)
         const moveRegex = /(?:\bmove\s+)?(?:[PNBRQK])?([a-h][1-8])[x-]?([a-h][1-8][qrbn]?)/i;
         const moveMatch = trimmed.match(moveRegex);
 
@@ -102,12 +113,14 @@ class CraftyAdapter extends ChessEngineAdapter {
         }
 
 
+
         super.handleEngineOutput(line);
     }
 
 
     setupGame(fen, level) {
         console.log(`${this.engineName} setting up game: level=${level} FEN=${fen}`);
+        this.currentFen = fen; // Guardamos el FEN para saber de quién es el turno en el enroque
         this.sendCommand('new');
         this.sendCommand('easy'); // Turn off pondering
         this.sendCommand('output long'); // Correct command for Crafty to use coordinates
