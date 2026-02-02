@@ -22,6 +22,8 @@ class ChessEngineAdapter extends EventEmitter {
         // Logging
         this.logPath = options.logPath || null; // adapters may set this before initialize
         this._logStream = null;
+        this.idleTimeoutMs = options.idleTimeoutMs || 60000; // default 60s
+        this._idleTimer = null;
     }
 
     async initialize() {
@@ -92,7 +94,7 @@ class ChessEngineAdapter extends EventEmitter {
                 buffer += s;
                 const lines = buffer.split('\n');
                 buffer = lines.pop();
-                
+
                 lines.forEach(line => {
                     this.emit('engine-output', line.trim());
                     this.handleEngineOutput(line.trim());
@@ -128,8 +130,12 @@ class ChessEngineAdapter extends EventEmitter {
 
             this.once('error', (err) => {
                 clearTimeout(initTimeout);
+                this.shutdown().catch(() => { }); // Try to clean up on error
                 reject(err);
             });
+
+            // Reset idle timer whenever we initialize
+            this.resetIdleTimer();
 
             // Allow subclasses to implement their own handshake
             if (typeof this.handshake === 'function') {
@@ -172,17 +178,20 @@ class ChessEngineAdapter extends EventEmitter {
         }
 
         this.gameId = Date.now().toString();
-        
+
         return new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
+            const timeout = setTimeout(async () => {
                 this.removeAllListeners('bestmove');
                 this._currentMoveReject = null;
+                console.warn(`Move calculation timeout for ${this.enginePath}. Shutting down engine.`);
+                await this.shutdown().catch(() => { });
                 reject(new Error('Move calculation timeout'));
             }, 30000);
 
             this.once('bestmove', (move) => {
                 clearTimeout(timeout);
                 this._currentMoveReject = null;
+                this.resetIdleTimer();
                 resolve(move);
             });
 
@@ -201,16 +210,45 @@ class ChessEngineAdapter extends EventEmitter {
     }
 
     async shutdown() {
+        if (this._idleTimer) {
+            clearTimeout(this._idleTimer);
+            this._idleTimer = null;
+        }
         if (this.process) {
-            this.sendCommand('quit');
+            console.log(`Shutting down engine: ${this.enginePath}`);
+            // Try graceful quit
+            try {
+                this.sendCommand('quit');
+            } catch (e) { }
+
             await new Promise(resolve => {
-                this.process.once('close', resolve);
-                setTimeout(resolve, 5000);
+                const termTimeout = setTimeout(() => {
+                    if (this.process) {
+                        console.warn(`Engine ${this.enginePath} did not exit gracefully, killing it.`);
+                        this.process.kill('SIGKILL');
+                    }
+                    resolve();
+                }, 2000);
+
+                this.process.once('close', () => {
+                    clearTimeout(termTimeout);
+                    resolve();
+                });
             });
             this.process = null;
             this.isReady = false;
             this._currentMoveReject = null;
         }
+    }
+
+    resetIdleTimer() {
+        if (this._idleTimer) {
+            clearTimeout(this._idleTimer);
+        }
+        this._idleTimer = setTimeout(() => {
+            console.log(`Engine ${this.enginePath} idle for ${this.idleTimeoutMs}ms, shutting down to save memory.`);
+            this.shutdown().catch(err => console.error(`Error during idle shutdown of ${this.enginePath}:`, err));
+        }, this.idleTimeoutMs);
     }
 }
 

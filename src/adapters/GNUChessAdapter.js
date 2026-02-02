@@ -91,19 +91,23 @@ class GNUChessAdapter extends ChessEngineAdapter {
         }
 
         return new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
+            const timeout = setTimeout(async () => {
                 this.removeAllListeners('bestmove');
+                this._currentMoveReject = null;
+                console.warn(`Move calculation timeout for ${this.engineName}. Shutting down engine.`);
+                await this.shutdown().catch(() => { });
                 reject(new Error('Move calculation timeout'));
             }, 30000); // 30 second timeout
 
             this.once('bestmove', (move) => {
                 clearTimeout(timeout);
+                this._currentMoveReject = null;
+                this.resetIdleTimer();
                 resolve(move);
             });
 
-            // Try the operation up to two times if engine process dies
-            this._attempts = this._attempts || 0;
-            this._attempts += 1;
+            // Keep reference to reject so we can fail fast if engine process dies
+            this._currentMoveReject = reject;
 
             this.setupGame(fen, level);
         });
@@ -124,7 +128,7 @@ class GNUChessAdapter extends ChessEngineAdapter {
                 // append stderr if available
                 if (this.logPath) {
                     const fs = require('fs');
-                    try { fs.appendFileSync(this.logPath, `ERROR: ${err.message}\n`); } catch (e) {}
+                    try { fs.appendFileSync(this.logPath, `ERROR: ${err.message}\n`); } catch (e) { }
                 }
 
                 try {
@@ -146,11 +150,12 @@ class GNUChessAdapter extends ChessEngineAdapter {
         console.log('GNUCHESS SETUP GAME CALLED!');
         // GNUChess protocol commands
         this.sendCommand('new'); // Start new game
+        this.sendCommand('memory 64'); // Limit memory/hash to 64MB
         this.sendCommand(`setboard ${fen}`);
         const depth = Math.max(1, Math.min(6, Math.floor(level)));
         this.sendCommand(`depth ${depth}`); // Set search depth (1..6)
         this.sendCommand('go');
-        if (this.logPath) { const fs = require('fs'); fs.appendFileSync(this.logPath, `SETUP: depth=${depth} fen=${fen}\n`); }
+        if (this.logPath) { const fs = require('fs'); fs.appendFileSync(this.logPath, `SETUP: depth=${depth} memory=64 fen=${fen}\n`); }
     }
 
     sendCommand(command) {
