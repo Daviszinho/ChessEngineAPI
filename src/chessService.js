@@ -8,38 +8,55 @@ const SjengAdapter = require('./adapters/SjengAdapter');
 const CraftyAdapter = require('./adapters/CraftyAdapter');
 const GlaurungAdapter = require('./adapters/GlaurungAdapter');
 const EtherealAdapter = require('./adapters/EtherealAdapter');
+const fs = require('fs');
+const { spawnSync } = require('child_process');
 
 const chessFacade = new ChessEngineFacade();
 
+function isEngineBinaryAvailable(enginePath) {
+    if (!enginePath) return false;
+    if (enginePath.includes('/')) return fs.existsSync(enginePath);
+    const result = spawnSync('which', [enginePath], { encoding: 'utf8' });
+    return result.status === 0;
+}
+
+function registerIfAvailable(name, adapter) {
+    if (isEngineBinaryAvailable(adapter.enginePath)) {
+        chessFacade.registerEngine(name, adapter);
+    } else {
+        console.warn(`Skipping '${name}': binary not found at '${adapter.enginePath}'`);
+    }
+}
+
 async function initializeEngines() {
     try {
-        chessFacade.registerEngine('stockfish', new StockfishAdapter());
+        registerIfAvailable('stockfish', new StockfishAdapter());
         // GNUChess is disabled by default due to high resource consumption on small VMs.
         // Enable with: ENABLE_GNUCHESS=true
         if (process.env.ENABLE_GNUCHESS === 'true') {
-            chessFacade.registerEngine('gnuchess', new GNUChessAdapter());
+            registerIfAvailable('gnuchess', new GNUChessAdapter());
         } else {
             console.warn('GNUChess engine is disabled by default. Set ENABLE_GNUCHESS=true to enable it.');
         }
 
         // Expose getBestMoveWithRetry for engines that may die and need a retry
         // (no change to facade API; adapters handle retries internally)
-        chessFacade.registerEngine('fruit', new FruitAdapter());
-        chessFacade.registerEngine('toga2', new Toga2Adapter());
-        chessFacade.registerEngine('phalanx', new PhalanxAdapter());
+        registerIfAvailable('fruit', new FruitAdapter());
+        registerIfAvailable('toga2', new Toga2Adapter());
+        registerIfAvailable('phalanx', new PhalanxAdapter());
         // Sjeng is disabled by default.
         // Enable with: ENABLE_SJENG=true
         if (process.env.ENABLE_SJENG === 'true') {
-            chessFacade.registerEngine('sjeng', new SjengAdapter());
+            registerIfAvailable('sjeng', new SjengAdapter());
         } else {
             console.warn('Sjeng engine is disabled by default. Set ENABLE_SJENG=true to enable it.');
         }
-        chessFacade.registerEngine('crafty', new CraftyAdapter());
-        chessFacade.registerEngine('glaurung', new GlaurungAdapter());
+        registerIfAvailable('crafty', new CraftyAdapter());
+        registerIfAvailable('glaurung', new GlaurungAdapter());
         // Ethereal is supported but disabled by default due to stability concerns.
         // Enable with: ENABLE_ETHEREAL=true
         if (process.env.ENABLE_ETHEREAL === 'true') {
-            chessFacade.registerEngine('ethereal', new EtherealAdapter());
+            registerIfAvailable('ethereal', new EtherealAdapter());
         } else {
             console.warn('Ethereal engine is disabled by default. Set ENABLE_ETHEREAL=true to enable it.');
         }

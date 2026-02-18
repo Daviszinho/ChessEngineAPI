@@ -51,6 +51,26 @@ npm start
 ```
 Server runs on http://localhost:3000
 
+### Run with Docker
+```bash
+# Build image
+docker build -t chess-engine-api .
+
+# Run container
+docker run --rm -p 3000:3000 --name chess-engine-api chess-engine-api
+```
+
+API will be available at `http://localhost:3000`.
+
+### Run with Docker Compose
+```bash
+docker compose up --build
+```
+
+The compose service exposes:
+- API at `http://localhost:3000`
+- Environment toggles for optional engines (`ENABLE_GNUCHESS`, `ENABLE_SJENG`, `ENABLE_ETHEREAL`)
+
 ### HTTPS Setup with nginx
 ```bash
 npm install

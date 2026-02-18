@@ -1,0 +1,12 @@
+services:
+  chess-engine-api:
+    build: .
+    container_name: chess-engine-api
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      ENABLE_GNUCHESS: "false"
+      ENABLE_SJENG: "false"
+      ENABLE_ETHEREAL: "false"
+    restart: unless-stopped

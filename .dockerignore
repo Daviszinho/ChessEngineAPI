@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log*
+.git
+.gitignore
+deploy.zip
+functions
+test
+nginx
+*.service
+*.sh
+README.md
