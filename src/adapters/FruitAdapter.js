@@ -4,10 +4,17 @@ const fs = require('fs');
 
 class FruitAdapter extends ChessEngineAdapter {
     constructor() {
-        // Allow override via env var, packaged fallback, or plain executable 'fruit_21_static' in PATH
+        // Allow override via env var, container-packaged binary, distro paths, or PATH.
         const envPath = process.env.FRUIT_PATH;
-        const packaged = path.join(__dirname, '../../fruit_21_linux/fruit_21_static');
-        let resolvedPath = envPath || (fs.existsSync(packaged) ? packaged : 'fruit_21_static');
+        const candidates = [
+            envPath,
+            path.join(__dirname, '../../engines/fruit'),
+            '/usr/games/fruit_21_static',
+            '/usr/games/fruit',
+            'fruit_21_static',
+            'fruit'
+        ].filter(Boolean);
+        const resolvedPath = candidates.find(p => p.includes('/') ? fs.existsSync(p) : true) || 'fruit';
         super(resolvedPath);
         this.engineName = 'Fruit';
     }

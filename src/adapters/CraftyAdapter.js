@@ -1,9 +1,18 @@
 const ChessEngineAdapter = require('./ChessEngineAdapter');
+const fs = require('fs');
 
 class CraftyAdapter extends ChessEngineAdapter {
     constructor() {
+        const envPath = process.env.CRAFTY_PATH;
+        const candidates = [
+            envPath,
+            '/usr/games/crafty',
+            '/usr/bin/crafty',
+            'crafty'
+        ].filter(Boolean);
+        const resolvedPath = candidates.find(p => p.includes('/') ? fs.existsSync(p) : true) || 'crafty';
         // Crafty typically speaks XBoard/WinBoard protocol
-        super('/usr/games/crafty', [], { initTimeoutMs: 15000 });
+        super(resolvedPath, [], { initTimeoutMs: 15000 });
         this.engineName = 'Crafty';
         this.usingXBoard = false;
         this.awaitingFeature = false;
@@ -136,4 +145,3 @@ class CraftyAdapter extends ChessEngineAdapter {
 }
 
 module.exports = CraftyAdapter;
-

@@ -15,6 +15,7 @@ proxy.log
 .env.development.local
 .env.test.local
 .env.production.local
+.ghcr_token
 
 # IDE files
 .vscode/
