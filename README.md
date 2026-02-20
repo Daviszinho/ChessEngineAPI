@@ -71,22 +71,6 @@ The compose service exposes:
 - API at `http://localhost:3000`
 - Environment toggles for optional engines (`ENABLE_GNUCHESS`, `ENABLE_SJENG`, `ENABLE_ETHEREAL`)
 
-### HTTPS Setup with nginx
-```bash
-npm install
-npm run setup-nginx
-npm start
-```
-This will:
-- Generate SSL certificate
-- Configure nginx reverse proxy
-- Enable HTTPS on port 443
-- Redirect HTTP to HTTPS
-
-**API URLs:**
-- HTTP: http://localhost:3000/api/move
-- HTTPS: https://localhost/api/move (recommended)
-
 ## Testing
 
 ```bash
@@ -127,7 +111,7 @@ Response format note
 ## AI Consumer Guide
 
 ### Production API Endpoint
-**Base URI:** `https://daviszinhovm.westus2.cloudapp.azure.com/api/move`
+**Base URI:** `https://chessengineapi.calmdesert-d6fcfdbe.centralus.azurecontainerapps.io/api/move`
 
 ### How to Consume the API (for AI Systems)
 
@@ -136,7 +120,7 @@ Send POST requests to obtain chess moves from any supported engine:
 
 ```javascript
 // Example request using fetch
-const response = await fetch('https://daviszinhovm.westus2.cloudapp.azure.com/api/move', {
+const response = await fetch('https://chessengineapi.calmdesert-d6fcfdbe.centralus.azurecontainerapps.io/api/move', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
@@ -181,7 +165,7 @@ console.log(result.response.move); // Best move (e.g., "e2e4")
 - Always check `success` field in response
 
 #### 5. Available Engines Discovery
-GET `https://daviszinhovm.westus2.cloudapp.azure.com/api/engines` to list all available engines and their supported levels.
+GET `https://chessengineapi.calmdesert-d6fcfdbe.centralus.azurecontainerapps.io/api/engines` to list all available engines and their supported levels.
 
 #### 6. Integration Best Practices
 - Use retry logic for network failures
@@ -195,7 +179,7 @@ GET `https://daviszinhovm.westus2.cloudapp.azure.com/api/engines` to list all av
 import requests
 
 def get_best_move(fen, engine="stockfish", level=5):
-    url = "https://daviszinhovm.westus2.cloudapp.azure.com/api/move"
+    url = "https://chessengineapi.calmdesert-d6fcfdbe.centralus.azurecontainerapps.io/api/move"
     payload = {"fen": fen, "engine": engine, "level": level}
     
     try:
