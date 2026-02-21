@@ -1,0 +1,119 @@
+{
+  "name": "ChessEngineAPI Security Policy",
+  "description": "Custom OWASP ZAP policy for ChessEngine API with false positive filtering",
+  "rules": [
+    {
+      "id": "10016",
+      "name": "X-Content-Type-Options Header Missing",
+      "risk": "MEDIUM",
+      "enabled": true,
+      "action": "warn",
+      "note": "Helmet middleware handles this - may generate false positives"
+    },
+    {
+      "id": "10020",
+      "name": "Missing Content-Type Header",
+      "risk": "LOW",
+      "enabled": true,
+      "action": "ignore",
+      "note": "Express.json() sets Content-Type automatically"
+    },
+    {
+      "id": "10015",
+      "name": "Re-evaluate Cookie Security",
+      "risk": "MEDIUM",
+      "enabled": true,
+      "action": "warn",
+      "note": "API uses JWT tokens, not cookies - may be false positive"
+    },
+    {
+      "id": "10011",
+      "name": "Missing ANTI CSRF Tokens",
+      "risk": "MEDIUM",
+      "enabled": true,
+      "action": "warn",
+      "note": "Stateless REST API - CSRF not applicable"
+    },
+    {
+      "id": "10027",
+      "name": "Information Disclosure - Sensitive Information in URL",
+      "risk": "MEDIUM",
+      "enabled": true,
+      "action": "warn",
+      "note": "API parameters may be flagged - review only"
+    },
+    {
+      "id": "40006",
+      "name": "Path Traversal",
+      "risk": "HIGH",
+      "enabled": true,
+      "action": "alert"
+    },
+    {
+      "id": "40014",
+      "name": "Heartbleed OpenSSL Vulnerability",
+      "risk": "CRITICAL",
+      "enabled": true,
+      "action": "alert"
+    },
+    {
+      "id": "90001",
+      "name": "Insecure JSP Configuration",
+      "risk": "HIGH",
+      "enabled": false,
+      "reason": "Not a Java application"
+    },
+    {
+      "id": "90002",
+      "name": "Java Deserialization RCE",
+      "risk": "CRITICAL",
+      "enabled": false,
+      "reason": "Not a Java application"
+    }
+  ],
+  "activeScans": {
+    "timeout": 300,
+    "scanPolicies": [
+      {
+        "policyName": "SQL Injection",
+        "enabled": true,
+        "riskThreshold": "HIGH"
+      },
+      {
+        "policyName": "Cross Site Scripting (XSS)",
+        "enabled": true,
+        "riskThreshold": "HIGH"
+      },
+      {
+        "policyName": "Command Injection",
+        "enabled": true,
+        "riskThreshold": "HIGH"
+      },
+      {
+        "policyName": "LDAP Injection",
+        "enabled": true,
+        "riskThreshold": "HIGH"
+      },
+      {
+        "policyName": "XML External Entity (XXE)",
+        "enabled": true,
+        "riskThreshold": "HIGH"
+      }
+    ]
+  },
+  "passiveScan": {
+    "maxRules": 100,
+    "timeout": 60
+  },
+  "excludeUrls": [
+    "/socket.io.*",
+    "/metrics.*",
+    ".*\\.png$",
+    ".*\\.jpg$",
+    ".*\\.css$",
+    ".*\\.js$"
+  ],
+  "targetUrls": [
+    "http://chess-engine-api:3000/api/.*"
+  ]
+}

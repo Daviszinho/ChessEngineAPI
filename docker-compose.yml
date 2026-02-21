@@ -9,4 +9,54 @@ services:
       ENABLE_GNUCHESS: "false"
       ENABLE_SJENG: "false"
       ENABLE_ETHEREAL: "false"
+      NODE_ENV: "development"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - chess-api-network
+    # For security scanning - only in dev/testing
+    profiles:
+      - dev
+      - security
+
+  owasp-zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    container_name: owasp-zap-scanner
+    ports:
+      - "8080:8080"
+      - "8090:8090"
+    environment:
+      ZAP_PORT: 8080
+      ZAP_CONFIG_API: "api.disablekey=true"
+    volumes:
+      - ./security/zap-reports:/zap/reports:rw
+      - ./security/zap-policies:/zap/policies:ro
+      - ./security/zap-wrk:/zap/wrk:rw
+    networks:
+      - chess-api-network
+    depends_on:
+      chess-engine-api:
+        condition: service_healthy
+    # Wait before starting ZAP to ensure API is ready - run in daemon (headless) mode
+    entrypoint: >
+      sh -c 'sleep 3 && \
+             zap.sh -daemon -host 0.0.0.0 -port 8080 -config api.disablekey=true \
+             -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true'
+    # Process name = zap-scanner for container references
+    profiles:
+      - security
+    restart: on-failure
+    # Healthcheck: prefer host check, fallback to container exec handled by scripts
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sS -f http://localhost:8080/JSON/core/view/version/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  chess-api-network:
+    driver: bridge

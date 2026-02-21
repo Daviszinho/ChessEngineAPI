@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "vitest run --coverage --run"
+    "test": "vitest run --coverage --run",
+    "scan:security": "./security/scan-locally.sh baseline",
+    "scan:security:full": "./security/scan-locally.sh full",
+    "scan:security:quick": "./security/quick-scan.sh",
+    "scan:verify": "node ./security/verify-vulnerabilities.js ./security/zap-reports/report_latest.json"
   },
   "dependencies": {
     "chess.js": "^1.0.0",
