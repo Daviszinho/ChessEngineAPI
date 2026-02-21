@@ -67,7 +67,7 @@ El script mostrará un resumen en la terminal:
 
 ```
 ╔════════════════════════════════════════╗
-║   VULNERABILITY ASSESSMENT REPORT       ║
+║   VULNERABILITY ASSESSMENT REPORT      ║
 ╚════════════════════════════════════════╝
 
 Summary:
