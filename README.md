@@ -51,6 +51,13 @@ npm start
 ```
 Server runs on http://localhost:3000
 
+Important: this is an API service. `GET /` returns `404` by design. Use `/api/*` endpoints.
+
+### Development mode
+```bash
+npm run dev
+```
+
 ### Run with Docker
 ```bash
 # Build image
@@ -70,15 +77,70 @@ docker compose up --build
 The compose service exposes:
 - API at `http://localhost:3000`
 - Environment toggles for optional engines (`ENABLE_GNUCHESS`, `ENABLE_SJENG`, `ENABLE_ETHEREAL`)
+- OWASP ZAP scanner service via `security` profile
+
+### CORS configuration
+CORS is allowlist-based (no wildcard by default).
+
+Use environment variable:
+```bash
+CORS_ALLOWED_ORIGINS=https://your-frontend.example.com,http://localhost:5173
+```
+
+If an Origin is not in this list, the API will not return `Access-Control-Allow-Origin` for that request.
 
 ## Testing
 
 ```bash
-# Start server in one terminal
-npm start
+# Unit tests (Vitest + coverage)
+npm test
 
-# Run tests in another
-node test/api.test.js
+# Single file
+npm run test -- test/server.test.js
+```
+
+## Security Scanning (OWASP ZAP)
+
+```bash
+# Baseline (recommended)
+npm run scan:security
+
+# Full scan
+npm run scan:security:full
+
+# Quick scan helper
+npm run scan:security:quick
+
+# Verify latest report JSON
+npm run scan:verify
+```
+
+Progress monitor:
+```bash
+./security/watch-zap-progress.sh 3 60
+```
+
+Useful scan env vars:
+- `SCAN_TIMEOUT_SECONDS`
+- `BASELINE_SPIDER_MINS`
+- `BASELINE_PASSIVE_MAX_MINS`
+- `ENABLE_ACTIVE_SCAN`
+- `SCAN_TARGET_URL`
+- `CORS_ALLOWED_ORIGINS`
+
+The local scan script also performs a CORS safety pre-check and can force API rebuild before scanning.
+
+## Publish Container Image (GHCR)
+
+Script:
+```bash
+./push-ghcr.sh [version] [image_name]
+```
+
+Examples:
+```bash
+CR_PAT=ghp_xxx ./push-ghcr.sh 1.0.0 chess-engine-api
+./push-ghcr.sh
 ```
 
 ## Available Engines
