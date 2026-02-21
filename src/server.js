@@ -8,10 +8,36 @@ const { validateMoveRequest } = require('./middleware/validation');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const defaultAllowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:4173',
+    'http://127.0.0.1:4173'
+];
+
+const allowedOrigins = new Set(
+    (process.env.CORS_ALLOWED_ORIGINS || defaultAllowedOrigins.join(','))
+        .split(',')
+        .map(origin => origin.trim())
+        .filter(Boolean)
+);
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        // No Origin header means non-browser or same-origin request.
+        if (!origin) return callback(null, false);
+        if (allowedOrigins.has(origin)) return callback(null, true);
+        return callback(null, false);
+    },
+    methods: ['GET', 'POST', 'OPTIONS'],
+    optionsSuccessStatus: 204
+};
+
 app.use(helmet({
     hsts: false
 }));
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/api/engines', (req, res) => {

@@ -25,19 +25,23 @@ curl -I http://localhost:3000/api/health | grep -i "x-content-type-options"
 
 ### 2. CORS Configuration Issues
 **Risk Level:** HIGH/MEDIUM  
-**Status:** INTENTIONAL DESIGN  
-**Reason:** CORS is intentionally enabled to allow cross-origin requests from web clients. This is necessary for a public-facing API.
+**Status:** MITIGATED  
+**Reason:** CORS is now restricted to an allowlist of trusted origins via `CORS_ALLOWED_ORIGINS`.
 
 **Evidence:**
 ```javascript
 // src/server.js
-app.use(cors());
+app.use(cors(corsOptions));
 ```
 
-**Mitigation:** CORS is used safely:
-- Only JSON responses are returned
-- No sensitive data in CORS headers
-- Input validation is performed on all requests
+**Verification:**
+```bash
+# Allowed origin (should return explicit origin, never *)
+curl -I http://localhost:3000/api/health -H "Origin: http://localhost:5173" | grep -i "access-control-allow-origin"
+
+# Untrusted origin (should not return CORS allow header)
+curl -I http://localhost:3000/api/health -H "Origin: https://evil.example" | grep -i "access-control-allow-origin"
+```
 
 ### 3. Missing Content-Type Header  
 **Risk Level:** LOW  

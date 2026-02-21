@@ -51,6 +51,27 @@ describe('Server API', () => {
         expect(res.body).toHaveProperty('engines');
     });
 
+    test('CORS allows configured origin without wildcard', async () => {
+        chessFacade.getAvailableEngines.mockReturnValue([]);
+        const res = await request(app)
+            .get('/api/health')
+            .set('Origin', 'http://localhost:5173');
+
+        expect(res.status).toBe(200);
+        expect(res.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+        expect(res.headers['access-control-allow-origin']).not.toBe('*');
+    });
+
+    test('CORS blocks untrusted origin', async () => {
+        chessFacade.getAvailableEngines.mockReturnValue([]);
+        const res = await request(app)
+            .get('/api/health')
+            .set('Origin', 'https://evil.example');
+
+        expect(res.status).toBe(200);
+        expect(res.headers['access-control-allow-origin']).toBeUndefined();
+    });
+
     test('unknown route returns 404', async () => {
         const res = await request(app).get('/not-found');
         expect(res.status).toBe(404);

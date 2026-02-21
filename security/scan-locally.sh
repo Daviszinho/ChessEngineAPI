@@ -40,6 +40,8 @@ BASELINE_SPIDER_MINS="${BASELINE_SPIDER_MINS:-1}"
 BASELINE_PASSIVE_MAX_MINS="${BASELINE_PASSIVE_MAX_MINS:-1}"
 ENABLE_ACTIVE_SCAN="${ENABLE_ACTIVE_SCAN:-false}"
 ZAP_SCRIPT_PORT="${ZAP_SCRIPT_PORT:-8090}"
+FORCE_REBUILD_API="${FORCE_REBUILD_API:-true}"
+API_CORS_CHECK_URL="${API_CORS_CHECK_URL:-http://chess-engine-api:3000/api/health}"
 
 # Ensure report directory exists
 mkdir -p "${REPORT_DIR}"
@@ -137,6 +139,23 @@ check_scan_target_from_zap() {
     return 1
 }
 
+check_cors_policy() {
+    print_status "Validando CORS para origen no confiable..."
+    local cors_header
+    cors_header=$(${DOCKER_COMPOSE_CMD} exec -T ${ZAP_CONTAINER} sh -c 'curl -sSI -H "Origin: https://evil.example" "$1" | tr -d "\r" | awk -F": " '\''tolower($1)=="access-control-allow-origin"{print $2}'\'' | tail -1' _ "${API_CORS_CHECK_URL}" 2>/dev/null || true)
+
+    if [ "${cors_header}" = "*" ]; then
+        print_error "CORS inseguro detectado: Access-Control-Allow-Origin: *"
+        return 1
+    fi
+
+    if [ -n "${cors_header}" ]; then
+        print_success "CORS restringido (Allow-Origin: ${cors_header})"
+    else
+        print_success "CORS restringido (sin header para origen no confiable)"
+    fi
+}
+
 # Check if Docker and Docker Compose are available
 check_docker() {
     if ! command -v docker &> /dev/null; then
@@ -178,8 +197,13 @@ check_docker() {
 start_containers() {
     print_header "Iniciando contenedores"
     
-    print_status "Iniciando Chess Engine API..."
-    ${DOCKER_COMPOSE_CMD} up -d ${API_CONTAINER}
+    if [ "${FORCE_REBUILD_API}" = "true" ]; then
+        print_status "Iniciando Chess Engine API (rebuild forzado)..."
+        ${DOCKER_COMPOSE_CMD} up -d --build --force-recreate ${API_CONTAINER}
+    else
+        print_status "Iniciando Chess Engine API..."
+        ${DOCKER_COMPOSE_CMD} up -d ${API_CONTAINER}
+    fi
     
     print_status "Iniciando OWASP ZAP..."
     ${DOCKER_COMPOSE_CMD} up -d ${ZAP_CONTAINER}
@@ -479,6 +503,11 @@ main() {
     fi
 
     if ! check_scan_target_from_zap; then
+        return 1
+    fi
+
+    if ! check_cors_policy; then
+        print_error "Abortando scan: corrige CORS y vuelve a intentar."
         return 1
     fi
     
