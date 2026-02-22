@@ -1,6 +1,8 @@
 const Toga2Adapter = require('../src/adapters/Toga2Adapter');
 const FruitAdapter = require('../src/adapters/FruitAdapter');
 const GlaurungAdapter = require('../src/adapters/GlaurungAdapter');
+const RecklessAdapter = require('../src/adapters/RecklessAdapter');
+const Torch2Adapter = require('../src/adapters/Torch2Adapter');
 const EtherealAdapter = require('../src/adapters/EtherealAdapter');
 const GNUChessAdapter = require('../src/adapters/GNUChessAdapter');
 const CraftyAdapter = require('../src/adapters/CraftyAdapter');
@@ -45,6 +47,32 @@ describe('Engine level impact', () => {
         commands.length = 0;
         adapter.setupGame('fen', 20);
         expect(commands).toContain('go movetime 2400');
+    });
+
+    test('Reckless changes movetime and minimal mode by level', () => {
+        const adapter = new RecklessAdapter();
+        const commands = captureCommands(adapter);
+        adapter.setupGame('fen', 1);
+        expect(commands).toContain('setoption name Minimal value true');
+        expect(commands).toContain('go movetime 80');
+
+        commands.length = 0;
+        adapter.setupGame('fen', 20);
+        expect(commands).toContain('setoption name Minimal value false');
+        expect(commands).toContain('go movetime 2600');
+    });
+
+    test('Torch2 changes movetime and minimal mode by level', () => {
+        const adapter = new Torch2Adapter();
+        const commands = captureCommands(adapter);
+        adapter.setupGame('fen', 1);
+        expect(commands).toContain('setoption name Minimal value true');
+        expect(commands).toContain('go movetime 100');
+
+        commands.length = 0;
+        adapter.setupGame('fen', 20);
+        expect(commands).toContain('setoption name Minimal value false');
+        expect(commands).toContain('go movetime 2600');
     });
 
     test('Ethereal changes movetime and resources by level', () => {

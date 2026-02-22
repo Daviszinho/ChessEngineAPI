@@ -150,6 +150,8 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | Engine | Executable path | Protocol |
 |--------|------------------|----------|
 | **stockfish** | `/usr/games/stockfish` | UCI |
+| **reckless** | `engines/reckless-linux-generic` or `RECKLESS_PATH` | UCI |
+| **torch-2** | `engines/torch-2` or `TORCH2_PATH` | UCI |
 | **fruit** | `/usr/games/fruit_21_static` or `fruit_21_static` (in PATH) | UCI |
 
 > Tip: If the engine binary is in a non-standard location, set the `FRUIT_PATH` environment variable to its full path.
@@ -189,7 +191,7 @@ const response = await fetch('https://chessengineapi.calmdesert-d6fcfdbe.central
     },
     body: JSON.stringify({
         fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        engine: "stockfish",  // optional: engines include: stockfish, fruit, toga2 (UCI) and phalanx, crafty, gnuchess (XBoard)
+        engine: "stockfish",  // optional: engines include stockfish, reckless, torch-2, fruit, toga2 (UCI) and phalanx, crafty, gnuchess (XBoard)
         level: 5              // optional: 1-20 (strength level)
     })
 });

@@ -26,6 +26,8 @@ describe('chessService initializeEngines', () => {
     const engines = chessFacade.getAvailableEngines();
     expect(engines.length).toBeGreaterThan(0);
     expect(engines).toContain('stockfish');
+    expect(engines).toContain('reckless');
+    expect(engines).toContain('torch-2');
   });
 
   test('skips engines when binaries not found', async () => {
