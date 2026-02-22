@@ -44,7 +44,13 @@ async function initializeEngines() {
         registerIfAvailable('stockfish', new StockfishAdapter());
         registerIfAvailable('reckless', new RecklessAdapter());
         registerIfAvailable('torch-2', new Torch2Adapter());
-        registerIfAvailable('plentychess', new PlentyChessAdapter());
+        // PlentyChess is disabled by default due to runtime compatibility concerns on some base images.
+        // Enable with: ENABLE_PLENTYCHESS=true
+        if (process.env.ENABLE_PLENTYCHESS === 'true') {
+            registerIfAvailable('plentychess', new PlentyChessAdapter());
+        } else {
+            console.warn('PlentyChess engine is disabled by default. Set ENABLE_PLENTYCHESS=true to enable it.');
+        }
         // GNUChess is disabled by default due to high resource consumption on small VMs.
         // Enable with: ENABLE_GNUCHESS=true
         if (process.env.ENABLE_GNUCHESS === 'true') {

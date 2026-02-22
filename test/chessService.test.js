@@ -10,6 +10,7 @@ describe('chessService initializeEngines', () => {
     delete process.env.ENABLE_GNUCHESS;
     delete process.env.ENABLE_SJENG;
     delete process.env.ENABLE_ETHEREAL;
+    delete process.env.ENABLE_PLENTYCHESS;
   });
 
   test('registers engines when binaries are available', async () => {
@@ -20,6 +21,7 @@ describe('chessService initializeEngines', () => {
     process.env.ENABLE_GNUCHESS = 'true';
     process.env.ENABLE_SJENG = 'true';
     process.env.ENABLE_ETHEREAL = 'true';
+    process.env.ENABLE_PLENTYCHESS = 'true';
 
     await initializeEngines();
 
