@@ -18,7 +18,15 @@ const chessFacade = new ChessEngineFacade();
 
 function isEngineBinaryAvailable(enginePath) {
     if (!enginePath) return false;
-    if (enginePath.includes('/')) return fs.existsSync(enginePath);
+    if (enginePath.includes('/')) {
+        if (!fs.existsSync(enginePath)) return false;
+        try {
+            fs.accessSync(enginePath, fs.constants.X_OK);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
     const result = spawnSync('which', [enginePath], { encoding: 'utf8' });
     return result.status === 0;
 }

@@ -23,11 +23,14 @@ RUN npm ci --omit=dev
 
 COPY src ./src
 COPY engines ./engines
-RUN chmod +x ./engines/fruit
+RUN find ./engines -maxdepth 1 -type f -exec chmod +x {} \;
 
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV FRUIT_PATH=/app/engines/fruit
+ENV RECKLESS_PATH=/app/engines/reckless-linux-generic
+ENV TORCH2_PATH=/app/engines/torch-2
+ENV PLENTYCHESS_PATH=/app/engines/PlentyChess-7.0.0-linux-generic
 
 EXPOSE 3000
 
