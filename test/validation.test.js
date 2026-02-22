@@ -36,6 +36,15 @@ describe('validateMoveRequest middleware', () => {
         expect(req.body.engine).toBe('torch-2');
     });
 
+    test('accepts PlentyChess as valid engine', () => {
+        const req = { body: { fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', engine: 'PlentyChess', level: 5 } };
+        const res = mockRes();
+        const next = vi.fn();
+        validateMoveRequest(req, res, next);
+        expect(next).toHaveBeenCalled();
+        expect(req.body.engine).toBe('PlentyChess');
+    });
+
     test('rejects invalid fen', () => {
         const req = { body: { fen: 'invalid fen', engine: 'stockfish', level: 1 } };
         const res = mockRes();

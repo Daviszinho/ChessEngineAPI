@@ -2,6 +2,7 @@ const ChessEngineFacade = require('./facade/ChessEngineFacade');
 const StockfishAdapter = require('./adapters/StockfishAdapter');
 const RecklessAdapter = require('./adapters/RecklessAdapter');
 const Torch2Adapter = require('./adapters/Torch2Adapter');
+const PlentyChessAdapter = require('./adapters/PlentyChessAdapter');
 const GNUChessAdapter = require('./adapters/GNUChessAdapter');
 const FruitAdapter = require('./adapters/FruitAdapter');
 const Toga2Adapter = require('./adapters/Toga2Adapter');
@@ -35,6 +36,7 @@ async function initializeEngines() {
         registerIfAvailable('stockfish', new StockfishAdapter());
         registerIfAvailable('reckless', new RecklessAdapter());
         registerIfAvailable('torch-2', new Torch2Adapter());
+        registerIfAvailable('plentychess', new PlentyChessAdapter());
         // GNUChess is disabled by default due to high resource consumption on small VMs.
         // Enable with: ENABLE_GNUCHESS=true
         if (process.env.ENABLE_GNUCHESS === 'true') {
