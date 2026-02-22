@@ -20,9 +20,27 @@ class Toga2Adapter extends ChessEngineAdapter {
         }
     }
 
+    normalizeLevel(level) {
+        const numericLevel = Number(level);
+        if (!Number.isFinite(numericLevel)) {
+            return 1;
+        }
+        return Math.max(1, Math.min(20, Math.floor(numericLevel)));
+    }
+
+    levelToMoveTimeMs(level) {
+        const minMs = 100;
+        const maxMs = 2200;
+        return Math.round(minMs + ((level - 1) * (maxMs - minMs) / 19));
+    }
+
     setupGame(fen, level) {
-        super.setupGame(fen, level);
-        this.sendCommand(`setoption name Skill Level value ${Math.max(0, Math.min(20, level))}`);
+        const normalizedLevel = this.normalizeLevel(level);
+        this.sendCommand('ucinewgame');
+        this.sendCommand('setoption name Ponder value false');
+        this.sendCommand(`setoption name Skill Level value ${normalizedLevel}`);
+        this.sendCommand(`position fen ${fen}`);
+        this.sendCommand(`go movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
     }
 }
 

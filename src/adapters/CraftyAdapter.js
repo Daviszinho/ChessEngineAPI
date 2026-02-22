@@ -129,15 +129,16 @@ class CraftyAdapter extends ChessEngineAdapter {
 
     setupGame(fen, level) {
         console.log(`${this.engineName} setting up game: level=${level} FEN=${fen}`);
+        const normalizedLevel = Math.max(1, Math.min(20, Math.floor(Number(level) || 1)));
+        const depth = Math.round(2 + ((normalizedLevel - 1) * 22 / 19)); // 2..24
+        const moveTimeSec = Math.round(1 + ((normalizedLevel - 1) * 19 / 19)); // 1..20
         this.currentFen = fen; // Guardamos el FEN para saber de quién es el turno en el enroque
         this.sendCommand('new');
         this.sendCommand('easy'); // Turn off pondering
         this.sendCommand('output long'); // Correct command for Crafty to use coordinates
         this.sendCommand(`setboard ${fen}`);
-
-        // Map level to search depth
-        const depth = Math.max(1, Math.min(12, Math.floor(level * 1.5)));
         this.sendCommand(`sd ${depth}`);
+        this.sendCommand(`st ${moveTimeSec}`);
 
         this.sendCommand('go');
     }

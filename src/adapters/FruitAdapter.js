@@ -39,18 +39,37 @@ class FruitAdapter extends ChessEngineAdapter {
         }
     }
 
+    normalizeLevel(level) {
+        const numericLevel = Number(level);
+        if (!Number.isFinite(numericLevel)) {
+            return 1;
+        }
+        return Math.max(1, Math.min(20, Math.floor(numericLevel)));
+    }
+
+    levelToDepth(level) {
+        return Math.round(2 + ((level - 1) * 14 / 19));
+    }
+
+    levelToMoveTimeMs(level) {
+        const minMs = 120;
+        const maxMs = 2200;
+        return Math.round(minMs + ((level - 1) * (maxMs - minMs) / 19));
+    }
+
     setupGame(fen, level) {
-        super.setupGame(fen, level);
-        
+        const strength = this.normalizeLevel(level);
+        const normalizedStrength = strength / 20;
+        const knowledgeWeight = Math.round(20 + ((strength - 1) * 80 / 19));
+        const depth = this.levelToDepth(strength);
+        const moveTimeMs = this.levelToMoveTimeMs(strength);
+
+        this.sendCommand('ucinewgame');
+
         // Fruit-specific configuration
         this.sendCommand('setoption name Ponder value false');
         this.sendCommand('setoption name OwnBook value true');
-        
-        // Convert level (1-20) to Fruit's strength parameters
-        // Fruit doesn't have Skill Level, so we use a combination of options
-        const strength = Math.max(0, Math.min(20, level));
-        const normalizedStrength = strength / 20; // 0-1 range
-        
+
         // Adjust search parameters based on strength
         if (strength < 10) {
             // Weaker play: reduce search depth and enable more pruning
@@ -60,7 +79,6 @@ class FruitAdapter extends ChessEngineAdapter {
             this.sendCommand('setoption name Delta Pruning value true');
             
             // Reduce knowledge weights for weaker play
-            const knowledgeWeight = Math.floor(100 * normalizedStrength);
             this.sendCommand(`setoption name Material value ${knowledgeWeight}`);
             this.sendCommand(`setoption name Piece Activity value ${knowledgeWeight}`);
             this.sendCommand(`setoption name King Safety value ${knowledgeWeight}`);
@@ -80,6 +98,9 @@ class FruitAdapter extends ChessEngineAdapter {
             this.sendCommand('setoption name Pawn Structure value 100');
             this.sendCommand('setoption name Passed Pawns value 100');
         }
+
+        this.sendCommand(`position fen ${fen}`);
+        this.sendCommand(`go depth ${depth} movetime ${moveTimeMs}`);
     }
 }
 

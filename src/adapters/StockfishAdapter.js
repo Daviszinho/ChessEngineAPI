@@ -20,10 +20,42 @@ class StockfishAdapter extends ChessEngineAdapter {
         }
     }
 
+    normalizeLevel(level) {
+        const numericLevel = Number(level);
+        if (!Number.isFinite(numericLevel)) {
+            return 1;
+        }
+        return Math.max(1, Math.min(20, Math.floor(numericLevel)));
+    }
+
+    levelToElo(level) {
+        // Practical range for limited Stockfish strength in most distributions.
+        const minElo = 1350;
+        const maxElo = 2850;
+        return Math.round(minElo + ((level - 1) * (maxElo - minElo) / 19));
+    }
+
+    levelToMoveTimeMs(level) {
+        const minMs = 120;
+        const maxMs = 2500;
+        return Math.round(minMs + ((level - 1) * (maxMs - minMs) / 19));
+    }
+
     setupGame(fen, level) {
-        super.setupGame(fen, level);
+        const normalizedLevel = this.normalizeLevel(level);
+        const useLimitedStrength = normalizedLevel < 20;
+
+        this.sendCommand('ucinewgame');
         this.sendCommand('setoption name Ponder value false');
-        this.sendCommand(`setoption name Skill Level value ${Math.max(0, Math.min(20, level))}`);
+        this.sendCommand(`setoption name Skill Level value ${normalizedLevel}`);
+        this.sendCommand(`setoption name UCI_LimitStrength value ${useLimitedStrength ? 'true' : 'false'}`);
+
+        if (useLimitedStrength) {
+            this.sendCommand(`setoption name UCI_Elo value ${this.levelToElo(normalizedLevel)}`);
+        }
+
+        this.sendCommand(`position fen ${fen}`);
+        this.sendCommand(`go movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
     }
 }
 

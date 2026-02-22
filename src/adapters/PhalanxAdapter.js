@@ -33,12 +33,16 @@ class PhalanxAdapter extends ChessEngineAdapter {
 
     // XBoard-style game setup
     setupGame(fen, level) {
+        const normalizedLevel = Math.max(1, Math.min(20, Math.floor(Number(level) || 1)));
+        const depth = Math.round(2 + ((normalizedLevel - 1) * 12 / 19)); // 2..14
+        const moveTimeSec = Math.round(1 + ((normalizedLevel - 1) * 19 / 19)); // 1..20
+        const centis = moveTimeSec * 100;
         // Use xboard commands compatible with Phalanx
         this.sendCommand('new');
         this.sendCommand(`setboard ${fen}`);
-        // Map level to a fixed search time in seconds for phalanx (approximation)
-        const seconds = Math.max(1, Math.min(60, Math.floor(level * 3)));
-        this.sendCommand(`time ${seconds}`); // if supported
+        this.sendCommand(`depth ${depth}`);
+        this.sendCommand(`st ${moveTimeSec}`);
+        this.sendCommand(`time ${centis}`);
         this.sendCommand('go');
     }
 }

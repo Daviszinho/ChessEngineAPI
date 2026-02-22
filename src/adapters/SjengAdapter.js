@@ -130,17 +130,24 @@ class SjengAdapter extends ChessEngineAdapter {
     }
 
     setupGame(fen, level) {
+        const normalizedLevel = Math.max(1, Math.min(20, Math.floor(Number(level) || 1)));
+        const depth = Math.round(2 + ((normalizedLevel - 1) * 16 / 19)); // 2..18
+        const moveTimeSec = Math.round(1 + ((normalizedLevel - 1) * 14 / 19)); // 1..15
+
         if (this.usingXBoard) {
-            // XBoard-style game setup for Sjeng (map level -> depth 1..6)
+            // XBoard-style game setup for Sjeng
             this.sendCommand('new');
             this.sendCommand(`setboard ${fen}`);
-            const depth = Math.max(1, Math.min(6, Math.floor(level)));
             this.sendCommand(`depth ${depth}`);
+            this.sendCommand(`st ${moveTimeSec}`);
             this.sendCommand('go');
-            if (this.logPath) { const fs = require('fs'); fs.appendFileSync(this.logPath, `SETUP: depth=${depth} fen=${fen}\n`); }
+            if (this.logPath) { const fs = require('fs'); fs.appendFileSync(this.logPath, `SETUP: depth=${depth} st=${moveTimeSec}s fen=${fen}\n`); }
         } else {
             // UCI-style setup
-            super.setupGame(fen, level);
+            this.sendCommand('ucinewgame');
+            this.sendCommand(`setoption name Skill Level value ${normalizedLevel}`);
+            this.sendCommand(`position fen ${fen}`);
+            this.sendCommand(`go movetime ${Math.round(120 + ((normalizedLevel - 1) * 1880 / 19))}`);
         }
     }
 }

@@ -148,14 +148,17 @@ class GNUChessAdapter extends ChessEngineAdapter {
 
     setupGame(fen, level) {
         console.log('GNUCHESS SETUP GAME CALLED!');
+        const normalizedLevel = Math.max(1, Math.min(20, Math.floor(Number(level) || 1)));
+        const depth = Math.round(2 + ((normalizedLevel - 1) * 16 / 19)); // 2..18
+        const moveTimeSec = Math.round(1 + ((normalizedLevel - 1) * 14 / 19)); // 1..15
         // GNUChess protocol commands
         this.sendCommand('new'); // Start new game
         this.sendCommand('memory 64'); // Limit memory/hash to 64MB
         this.sendCommand(`setboard ${fen}`);
-        const depth = Math.max(1, Math.min(6, Math.floor(level)));
-        this.sendCommand(`depth ${depth}`); // Set search depth (1..6)
+        this.sendCommand(`depth ${depth}`);
+        this.sendCommand(`st ${moveTimeSec}`);
         this.sendCommand('go');
-        if (this.logPath) { const fs = require('fs'); fs.appendFileSync(this.logPath, `SETUP: depth=${depth} memory=64 fen=${fen}\n`); }
+        if (this.logPath) { const fs = require('fs'); fs.appendFileSync(this.logPath, `SETUP: depth=${depth} st=${moveTimeSec}s memory=64 fen=${fen}\n`); }
     }
 
     sendCommand(command) {

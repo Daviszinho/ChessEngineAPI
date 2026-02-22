@@ -33,13 +33,30 @@ class EtherealAdapter extends ChessEngineAdapter {
         }
     }
 
+    normalizeLevel(level) {
+        const numericLevel = Number(level);
+        if (!Number.isFinite(numericLevel)) {
+            return 1;
+        }
+        return Math.max(1, Math.min(20, Math.floor(numericLevel)));
+    }
+
+    levelToMoveTimeMs(level) {
+        const minMs = 120;
+        const maxMs = 2600;
+        return Math.round(minMs + ((level - 1) * (maxMs - minMs) / 19));
+    }
+
     setupGame(fen, level) {
-        super.setupGame(fen, level);
+        const normalizedLevel = this.normalizeLevel(level);
         // Use conservative defaults to avoid crashes on some builds
+        this.sendCommand('ucinewgame');
         this.sendCommand('setoption name Ponder value false');
-        this.sendCommand('setoption name Threads value 1');
-        this.sendCommand('setoption name Hash value 16');
-        this.sendCommand(`setoption name Skill Level value ${Math.max(0, Math.min(20, level))}`);
+        this.sendCommand(`setoption name Threads value ${normalizedLevel >= 16 ? 2 : 1}`);
+        this.sendCommand(`setoption name Hash value ${normalizedLevel >= 16 ? 32 : 16}`);
+        this.sendCommand(`setoption name Skill Level value ${normalizedLevel}`);
+        this.sendCommand(`position fen ${fen}`);
+        this.sendCommand(`go movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
     }
 }
 
