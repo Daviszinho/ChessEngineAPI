@@ -36,6 +36,7 @@ class ChessEngineAdapter extends EventEmitter {
             this.process = spawn(this.enginePath, this.engineArgs || []);
             this.lastStderr = '';
             this._currentMoveReject = null;
+            this._initializing = true;
 
             // Create per-process log file if not set
             if (!this.logPath) {
@@ -52,11 +53,13 @@ class ChessEngineAdapter extends EventEmitter {
 
             this.process.on('error', (error) => {
                 clearTimeout(initTimeout);
+                this._initializing = false;
                 if (this._logStream) this._logStream.write(`engine error: ${error.message}\n`);
                 reject(new Error(`Failed to start engine '${this.enginePath}': ${error.message}`));
             });
 
             this.process.on('close', (code, signal) => {
+                this._initializing = false;
                 this.isReady = false;
                 this.lastCrashAt = Date.now();
                 this.crashCount = (this.crashCount || 0) + 1;
@@ -83,6 +86,17 @@ class ChessEngineAdapter extends EventEmitter {
                 if (this._logStream) {
                     this._logStream.end();
                     this._logStream = null;
+                }
+            });
+
+            this.process.stdin.on('error', (error) => {
+                const msg = `Engine stdin error (${this.enginePath}): ${error.message}`;
+                console.error(msg);
+                if (this._logStream) this._logStream.write(`${msg}\n`);
+
+                if (this._currentMoveReject) {
+                    this._currentMoveReject(new Error(msg));
+                    this._currentMoveReject = null;
                 }
             });
 
@@ -121,6 +135,7 @@ class ChessEngineAdapter extends EventEmitter {
 
             this.once('ready', () => {
                 clearTimeout(initTimeout);
+                this._initializing = false;
                 this.isReady = true;
                 // successful init -> reset crash counter
                 this.crashCount = 0;
@@ -130,6 +145,7 @@ class ChessEngineAdapter extends EventEmitter {
 
             this.once('error', (err) => {
                 clearTimeout(initTimeout);
+                this._initializing = false;
                 this.shutdown().catch(() => { }); // Try to clean up on error
                 reject(err);
             });
@@ -165,10 +181,30 @@ class ChessEngineAdapter extends EventEmitter {
     }
 
     sendCommand(command) {
-        if (!this.process) {
+        if (!this.process || !this.process.stdin) {
             throw new Error('Engine process not started');
         }
-        this.process.stdin.write(command + '\n');
+        if (this.process.killed || this.process.stdin.destroyed || this.process.stdin.writableEnded) {
+            throw new Error(`Engine stdin is not writable for '${this.enginePath}'`);
+        }
+
+        this.process.stdin.write(command + '\n', (error) => {
+            if (!error) return;
+
+            const msg = `Failed to write to engine '${this.enginePath}': ${error.message}`;
+            console.error(msg);
+            if (this._logStream) this._logStream.write(`${msg}\n`);
+
+            if (this._initializing) {
+                this.emit('error', new Error(msg));
+                return;
+            }
+
+            if (this._currentMoveReject) {
+                this._currentMoveReject(new Error(msg));
+                this._currentMoveReject = null;
+            }
+        });
     }
 
     async getBestMove(fen, level = 1) {
