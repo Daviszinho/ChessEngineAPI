@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const ChessEngineAdapter = require('./ChessEngineAdapter');
 
 class CritterAdapter extends ChessEngineAdapter {
@@ -6,8 +7,7 @@ class CritterAdapter extends ChessEngineAdapter {
         const envPath = process.env.CRITTER_PATH;
         const candidates = [
             envPath,
-            '/app/engines/critter-16a',
-            '/snap/chess-tactics-and-strategy/2/opt/vlasovsoft/chess/engines/critter-16a',
+            path.join(__dirname, '../../engines/critter'),
             '/usr/games/critter',
             'critter'
         ].filter(Boolean);
