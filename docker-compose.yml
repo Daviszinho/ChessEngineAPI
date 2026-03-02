@@ -9,7 +9,10 @@ services:
       ENABLE_GNUCHESS: "false"
       ENABLE_SJENG: "false"
       ENABLE_ETHEREAL: "false"
+      CRITTER_PATH: "/app/engines/critter-16a"
       NODE_ENV: "development"
+    volumes:
+      - /snap/chess-tactics-and-strategy/2/opt/vlasovsoft/chess/engines/critter-16a:/app/engines/critter-16a:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
