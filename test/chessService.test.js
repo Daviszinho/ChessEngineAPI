@@ -31,6 +31,7 @@ describe('chessService initializeEngines', () => {
     expect(engines).toContain('reckless');
     expect(engines).toContain('torch-2');
     expect(engines).toContain('plentychess');
+    expect(engines).toContain('critter');
   });
 
   test('skips engines when binaries not found', async () => {

@@ -9,6 +9,7 @@ const GNUChessAdapter = require('../src/adapters/GNUChessAdapter');
 const CraftyAdapter = require('../src/adapters/CraftyAdapter');
 const PhalanxAdapter = require('../src/adapters/PhalanxAdapter');
 const SjengAdapter = require('../src/adapters/SjengAdapter');
+const CritterAdapter = require('../src/adapters/CritterAdapter');
 
 function captureCommands(adapter) {
     const commands = [];
@@ -157,5 +158,16 @@ describe('Engine level impact', () => {
         adapter.setupGame('fen', 20);
         expect(commands).toContain('depth 18');
         expect(commands).toContain('st 15');
+    });
+
+    test('Critter changes movetime by level', () => {
+        const adapter = new CritterAdapter();
+        const commands = captureCommands(adapter);
+        adapter.setupGame('fen', 1);
+        expect(commands).toContain('go movetime 100');
+
+        commands.length = 0;
+        adapter.setupGame('fen', 20);
+        expect(commands).toContain('go movetime 2400');
     });
 });
