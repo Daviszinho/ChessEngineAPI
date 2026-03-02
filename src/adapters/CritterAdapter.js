@@ -6,6 +6,7 @@ class CritterAdapter extends ChessEngineAdapter {
         const envPath = process.env.CRITTER_PATH;
         const candidates = [
             envPath,
+            '/app/engines/critter-16a',
             '/snap/chess-tactics-and-strategy/2/opt/vlasovsoft/chess/engines/critter-16a',
             '/usr/games/critter',
             'critter'

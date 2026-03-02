@@ -31,6 +31,7 @@ ENV FRUIT_PATH=/app/engines/fruit
 ENV RECKLESS_PATH=/app/engines/reckless-linux-generic
 ENV TORCH2_PATH=/app/engines/torch-2
 ENV PLENTYCHESS_PATH=/app/engines/PlentyChess-7.0.0-linux-generic
+ENV CRITTER_PATH=/app/engines/critter-16a
 
 EXPOSE 3000
 

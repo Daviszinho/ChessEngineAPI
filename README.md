@@ -153,10 +153,11 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **reckless** | `engines/reckless-linux-generic` or `RECKLESS_PATH` | UCI |
 | **torch-2** | `engines/torch-2` or `TORCH2_PATH` | UCI |
 | **PlentyChess** | `engines/PlentyChess-7.0.0-linux-generic` or `PLENTYCHESS_PATH` | UCI |
-| **critter** | `/snap/chess-tactics-and-strategy/2/opt/vlasovsoft/chess/engines/critter-16a` or `CRITTER_PATH` | UCI |
+| **critter** | `/snap/chess-tactics-and-strategy/2/opt/vlasovsoft/chess/engines/critter-16a`, `/app/engines/critter-16a` or `CRITTER_PATH` | UCI |
 | **fruit** | `/usr/games/fruit_21_static` or `fruit_21_static` (in PATH) | UCI |
 
 > Tip: If an engine binary is in a non-standard location, set the corresponding `*_PATH` environment variable (for example `CRITTER_PATH` or `FRUIT_PATH`) to its full path.
+> Docker tip: mount your host Critter binary into the container (for example to `/app/engines/critter-16a`) and set `CRITTER_PATH=/app/engines/critter-16a`.
 | **toga2** | `/usr/games/toga2` | UCI |
 | **phalanx** | `/usr/games/phalanx` | XBoard |
 | **sjeng** (disabled) | `/usr/games/sjeng` | XBoard |
