@@ -77,6 +77,7 @@ docker compose up --build
 The compose service exposes:
 - API at `http://localhost:3000`
 - Environment toggles for optional engines (`ENABLE_GNUCHESS`, `ENABLE_SJENG`, `ENABLE_ETHEREAL`)
+- Environment toggles for optional engines (`ENABLE_GNUCHESS`, `ENABLE_SJENG`, `ENABLE_ETHEREAL`, `ENABLE_KOMODO3`)
 - OWASP ZAP scanner service via `security` profile
 
 ### CORS configuration
@@ -168,6 +169,7 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **ethereal** | `/usr/games/ethereal-chess` or `ethereal-chess` (in PATH) | UCI |
 
 > **Note:** Ethereal and Sjeng are supported but **disabled by default**. To enable them, set `ENABLE_ETHEREAL=true` or `ENABLE_SJENG=true` in the environment before starting the server. If enabled, the engine must be present. GNUChess is also disabled by default for resource reasons (enable with `ENABLE_GNUCHESS=true`).
+> **Komodo3 toggle:** Komodo3 is enabled by default. Set `ENABLE_KOMODO3=false` to disable it.
 
 > Note: XBoard engines are driven using an XBoard-style handshake (eg. `xboard`/`protover`) and may use `depth`/`time` commands instead of UCI options. Level mapping for XBoard engines is approximated (e.g., level -> depth 1..6); see adapters for details.
 

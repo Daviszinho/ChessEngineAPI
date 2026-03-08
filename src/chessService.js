@@ -76,7 +76,13 @@ async function initializeEngines() {
         registerIfAvailable('crafty', new CraftyAdapter());
         registerIfAvailable('glaurung', new GlaurungAdapter());
         registerIfAvailable('critter', new CritterAdapter());
-        registerIfAvailable('komodo3', new Komodo3Adapter());
+        // Komodo3 can be disabled via config.
+        // Disable with: ENABLE_KOMODO3=false
+        if (process.env.ENABLE_KOMODO3 !== 'false') {
+            registerIfAvailable('komodo3', new Komodo3Adapter());
+        } else {
+            console.warn('Komodo3 engine is disabled by config (ENABLE_KOMODO3=false).');
+        }
         // Ethereal is supported but disabled by default due to stability concerns.
         // Enable with: ENABLE_ETHEREAL=true
         if (process.env.ENABLE_ETHEREAL === 'true') {
