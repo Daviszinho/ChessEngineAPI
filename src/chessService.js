@@ -12,6 +12,7 @@ const CraftyAdapter = require('./adapters/CraftyAdapter');
 const GlaurungAdapter = require('./adapters/GlaurungAdapter');
 const EtherealAdapter = require('./adapters/EtherealAdapter');
 const CritterAdapter = require('./adapters/CritterAdapter');
+const Komodo3Adapter = require('./adapters/Komodo3Adapter');
 const fs = require('fs');
 const { spawnSync } = require('child_process');
 
@@ -75,6 +76,7 @@ async function initializeEngines() {
         registerIfAvailable('crafty', new CraftyAdapter());
         registerIfAvailable('glaurung', new GlaurungAdapter());
         registerIfAvailable('critter', new CritterAdapter());
+        registerIfAvailable('komodo3', new Komodo3Adapter());
         // Ethereal is supported but disabled by default due to stability concerns.
         // Enable with: ENABLE_ETHEREAL=true
         if (process.env.ENABLE_ETHEREAL === 'true') {
