@@ -32,6 +32,7 @@ ENV RECKLESS_PATH=/app/engines/reckless-linux-generic
 ENV TORCH2_PATH=/app/engines/torch-2
 ENV PLENTYCHESS_PATH=/app/engines/PlentyChess-7.0.0-linux-generic
 ENV CRITTER_PATH=/app/engines/critter-16a
+ENV KOMODO3_PATH=/app/engines/komodo3sse42
 
 EXPOSE 3000
 

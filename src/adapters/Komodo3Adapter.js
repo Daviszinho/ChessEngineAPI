@@ -7,6 +7,7 @@ class Komodo3Adapter extends ChessEngineAdapter {
         const envPath = process.env.KOMODO3_PATH;
         const candidates = [
             envPath,
+            path.join(__dirname, '../../engines/komodo3sse42'),
             path.join(__dirname, '../../engines/komodo3'),
             '/usr/games/komodo3',
             'komodo3'

@@ -153,7 +153,7 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **reckless** | `engines/reckless-linux-generic` or `RECKLESS_PATH` | UCI |
 | **torch-2** | `engines/torch-2` or `TORCH2_PATH` | UCI |
 | **PlentyChess** | `engines/PlentyChess-7.0.0-linux-generic` or `PLENTYCHESS_PATH` | UCI |
-| **komodo3** | `engines/komodo3` or `KOMODO3_PATH` | UCI |
+| **komodo3** | `engines/komodo3sse42` (fallback: `engines/komodo3`) or `KOMODO3_PATH` | UCI |
 | **critter** | `/snap/chess-tactics-and-strategy/2/opt/vlasovsoft/chess/engines/critter-16a`, `/app/engines/critter-16a` or `CRITTER_PATH` | UCI |
 | **fruit** | `/usr/games/fruit_21_static` or `fruit_21_static` (in PATH) | UCI |
 
