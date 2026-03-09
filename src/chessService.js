@@ -12,7 +12,6 @@ const CraftyAdapter = require('./adapters/CraftyAdapter');
 const GlaurungAdapter = require('./adapters/GlaurungAdapter');
 const EtherealAdapter = require('./adapters/EtherealAdapter');
 const CritterAdapter = require('./adapters/CritterAdapter');
-const Komodo3Adapter = require('./adapters/Komodo3Adapter');
 const fs = require('fs');
 const { spawnSync } = require('child_process');
 
@@ -76,13 +75,6 @@ async function initializeEngines() {
         registerIfAvailable('crafty', new CraftyAdapter());
         registerIfAvailable('glaurung', new GlaurungAdapter());
         registerIfAvailable('critter', new CritterAdapter());
-        // Komodo3 can be disabled via config.
-        // Disable with: ENABLE_KOMODO3=false
-        if (process.env.ENABLE_KOMODO3 !== 'false') {
-            registerIfAvailable('komodo3', new Komodo3Adapter());
-        } else {
-            console.warn('Komodo3 engine is disabled by config (ENABLE_KOMODO3=false).');
-        }
         // Ethereal is supported but disabled by default due to stability concerns.
         // Enable with: ENABLE_ETHEREAL=true
         if (process.env.ENABLE_ETHEREAL === 'true') {

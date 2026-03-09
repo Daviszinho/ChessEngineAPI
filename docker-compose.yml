@@ -9,7 +9,6 @@ services:
       ENABLE_GNUCHESS: "false"
       ENABLE_SJENG: "false"
       ENABLE_ETHEREAL: "false"
-      ENABLE_KOMODO3: "false"
       CRITTER_PATH: "/app/engines/critter-16a"
       NODE_ENV: "development"
     volumes:

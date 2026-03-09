@@ -77,7 +77,7 @@ docker compose up --build
 The compose service exposes:
 - API at `http://localhost:3000`
 - Environment toggles for optional engines (`ENABLE_GNUCHESS`, `ENABLE_SJENG`, `ENABLE_ETHEREAL`)
-- Environment toggles for optional engines (`ENABLE_GNUCHESS`, `ENABLE_SJENG`, `ENABLE_ETHEREAL`, `ENABLE_KOMODO3`)
+- Environment toggles for optional engines (`ENABLE_GNUCHESS`, `ENABLE_SJENG`, `ENABLE_ETHEREAL`)
 - OWASP ZAP scanner service via `security` profile
 
 ### CORS configuration
@@ -154,11 +154,10 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **reckless** | `engines/reckless-linux-generic` or `RECKLESS_PATH` | UCI |
 | **torch-2** | `engines/torch-2` or `TORCH2_PATH` | UCI |
 | **PlentyChess** | `engines/PlentyChess-7.0.0-linux-generic` or `PLENTYCHESS_PATH` | UCI |
-| **komodo3** | `engines/komodo3sse42` (fallback: `engines/komodo3`) or `KOMODO3_PATH` | UCI |
 | **critter** | `/snap/chess-tactics-and-strategy/2/opt/vlasovsoft/chess/engines/critter-16a`, `/app/engines/critter-16a` or `CRITTER_PATH` | UCI |
 | **fruit** | `/usr/games/fruit_21_static` or `fruit_21_static` (in PATH) | UCI |
 
-> Tip: If an engine binary is in a non-standard location, set the corresponding `*_PATH` environment variable (for example `KOMODO3_PATH`, `CRITTER_PATH` or `FRUIT_PATH`) to its full path.
+> Tip: If an engine binary is in a non-standard location, set the corresponding `*_PATH` environment variable (for example `CRITTER_PATH` or `FRUIT_PATH`) to its full path.
 > Docker tip: mount your host Critter binary into the container (for example to `/app/engines/critter-16a`) and set `CRITTER_PATH=/app/engines/critter-16a`.
 | **toga2** | `/usr/games/toga2` | UCI |
 | **phalanx** | `/usr/games/phalanx` | XBoard |
@@ -169,7 +168,6 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **ethereal** | `/usr/games/ethereal-chess` or `ethereal-chess` (in PATH) | UCI |
 
 > **Note:** Ethereal and Sjeng are supported but **disabled by default**. To enable them, set `ENABLE_ETHEREAL=true` or `ENABLE_SJENG=true` in the environment before starting the server. If enabled, the engine must be present. GNUChess is also disabled by default for resource reasons (enable with `ENABLE_GNUCHESS=true`).
-> **Komodo3 toggle:** Komodo3 is enabled by default. Set `ENABLE_KOMODO3=false` to disable it.
 
 > Note: XBoard engines are driven using an XBoard-style handshake (eg. `xboard`/`protover`) and may use `depth`/`time` commands instead of UCI options. Level mapping for XBoard engines is approximated (e.g., level -> depth 1..6); see adapters for details.
 
@@ -197,7 +195,7 @@ const response = await fetch('https://chessengineapi.calmdesert-d6fcfdbe.central
     },
     body: JSON.stringify({
         fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        engine: "stockfish",  // optional: engines include stockfish, reckless, torch-2, PlentyChess, komodo3, fruit, toga2 (UCI) and phalanx, crafty, gnuchess (XBoard)
+        engine: "stockfish",  // optional: engines include stockfish, reckless, torch-2, PlentyChess, fruit, toga2 (UCI) and phalanx, crafty, gnuchess (XBoard)
         level: 5              // optional: 1-20 (strength level)
     })
 });
