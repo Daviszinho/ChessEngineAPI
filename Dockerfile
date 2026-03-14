@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim
+FROM node:20-trixie-slim
 
 # Enable non-free repos (needed for some chess engines such as crafty on Debian).
 RUN set -eux; \
@@ -32,6 +32,7 @@ ENV RECKLESS_PATH=/app/engines/reckless-linux-generic
 ENV TORCH2_PATH=/app/engines/torch-2
 ENV PLENTYCHESS_PATH=/app/engines/PlentyChess-7.0.0-linux-generic
 ENV CRITTER_PATH=/app/engines/critter-16a
+ENV RUBI_PATH=/app/engines/RubiChess-20240817_x86-64
 
 EXPOSE 3000
 
