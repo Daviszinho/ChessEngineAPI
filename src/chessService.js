@@ -15,6 +15,7 @@ const CritterAdapter = require('./adapters/CritterAdapter');
 const RubiAdapter = require('./adapters/RubiAdapter');
 const BerserkAdapter = require('./adapters/BerserkAdapter');
 const CaissaAdapter = require('./adapters/CaissaAdapter');
+const Lc0Adapter = require('./adapters/Lc0Adapter');
 const fs = require('fs');
 const { spawnSync } = require('child_process');
 
@@ -81,6 +82,11 @@ async function initializeEngines() {
         registerIfAvailable('rubi', new RubiAdapter());
         registerIfAvailable('berserk', new BerserkAdapter());
         registerIfAvailable('caissa', new CaissaAdapter());
+        const lc0Adapter = new Lc0Adapter();
+        if (!lc0Adapter.weightsAvailable) {
+            console.warn(`LC0 weights not found at '${lc0Adapter.weightsPath}'. Set LC0_WEIGHTS or LC0_NET to avoid startup errors.`);
+        }
+        registerIfAvailable('lc0', lc0Adapter);
         // Ethereal is supported but disabled by default due to stability concerns.
         // Enable with: ENABLE_ETHEREAL=true
         if (process.env.ENABLE_ETHEREAL === 'true') {
