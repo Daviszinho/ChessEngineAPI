@@ -34,6 +34,8 @@ ENV PLENTYCHESS_PATH=/app/engines/PlentyChess-7.0.0-linux-generic
 ENV CRITTER_PATH=/app/engines/critter-16a
 ENV RUBI_PATH=/app/engines/RubiChess-20240817_x86-64
 ENV BERSERK_PATH=/app/engines/berserk
+ENV CAISSA_PATH=/app/engines/caissa/caissa
+ENV CAISSA_EVALFILE=/app/engines/caissa/eval-71.pnn
 
 EXPOSE 3000
 

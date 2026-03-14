@@ -12,6 +12,8 @@ services:
       CRITTER_PATH: "/app/engines/critter-16a"
       RUBI_PATH: "/app/engines/RubiChess-20240817_x86-64"
       BERSERK_PATH: "/app/engines/berserk"
+      CAISSA_PATH: "/app/engines/caissa/caissa"
+      CAISSA_EVALFILE: "/app/engines/caissa/eval-71.pnn"
       NODE_ENV: "development"
     volumes:
       - /snap/chess-tactics-and-strategy/2/opt/vlasovsoft/chess/engines/critter-16a:/app/engines/critter-16a:ro

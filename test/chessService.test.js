@@ -33,6 +33,7 @@ describe('chessService initializeEngines', () => {
     expect(engines).toContain('plentychess');
     expect(engines).toContain('critter');
     expect(engines).toContain('berserk');
+    expect(engines).toContain('caissa');
   });
 
   test('skips engines when binaries not found', async () => {
