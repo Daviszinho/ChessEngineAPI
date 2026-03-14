@@ -24,6 +24,7 @@ RUN npm ci --omit=dev
 COPY src ./src
 COPY engines ./engines
 RUN find ./engines -maxdepth 1 -type f -exec chmod +x {} \;
+RUN chmod +x ./engines/caissa/caissa
 
 ENV NODE_ENV=production
 ENV PORT=3000
