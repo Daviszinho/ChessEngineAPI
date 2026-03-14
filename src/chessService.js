@@ -16,6 +16,7 @@ const RubiAdapter = require('./adapters/RubiAdapter');
 const BerserkAdapter = require('./adapters/BerserkAdapter');
 const CaissaAdapter = require('./adapters/CaissaAdapter');
 const Lc0Adapter = require('./adapters/Lc0Adapter');
+const ObsidianAdapter = require('./adapters/ObsidianAdapter');
 const fs = require('fs');
 const { spawnSync } = require('child_process');
 
@@ -80,6 +81,7 @@ async function initializeEngines() {
         registerIfAvailable('glaurung', new GlaurungAdapter());
         registerIfAvailable('critter', new CritterAdapter());
         registerIfAvailable('rubi', new RubiAdapter());
+        registerIfAvailable('obsidian', new ObsidianAdapter());
         registerIfAvailable('berserk', new BerserkAdapter());
         registerIfAvailable('caissa', new CaissaAdapter());
         const lc0Adapter = new Lc0Adapter();
