@@ -156,6 +156,7 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **PlentyChess** | `engines/PlentyChess-7.0.0-linux-generic` or `PLENTYCHESS_PATH` | UCI |
 | **critter** | `/snap/chess-tactics-and-strategy/2/opt/vlasovsoft/chess/engines/critter-16a`, `/app/engines/critter-16a` or `CRITTER_PATH` | UCI |
 | **fruit** | `/usr/games/fruit_21_static` or `fruit_21_static` (in PATH) | UCI |
+| **berserk** | `engines/berserk` or `BERSERK_PATH` | UCI |
 
 > Tip: If an engine binary is in a non-standard location, set the corresponding `*_PATH` environment variable (for example `CRITTER_PATH` or `FRUIT_PATH`) to its full path.
 > Docker tip: mount your host Critter binary into the container (for example to `/app/engines/critter-16a`) and set `CRITTER_PATH=/app/engines/critter-16a`.
@@ -195,7 +196,7 @@ const response = await fetch('https://chessengineapi.calmdesert-d6fcfdbe.central
     },
     body: JSON.stringify({
         fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        engine: "stockfish",  // optional: engines include stockfish, reckless, torch-2, PlentyChess, fruit, toga2 (UCI) and phalanx, crafty, gnuchess (XBoard)
+        engine: "stockfish",  // optional: engines include stockfish, reckless, torch-2, PlentyChess, fruit, toga2, berserk (UCI) and phalanx, crafty, gnuchess (XBoard)
         level: 5              // optional: 1-20 (strength level)
     })
 });
