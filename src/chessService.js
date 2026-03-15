@@ -81,7 +81,11 @@ async function initializeEngines() {
         registerIfAvailable('crafty', new CraftyAdapter());
         registerIfAvailable('glaurung', new GlaurungAdapter());
         registerIfAvailable('critter', new CritterAdapter());
-        registerIfAvailable('rubi', new RubiAdapter());
+        if (process.env.ENABLE_RUBI === 'false') {
+            console.warn('Rubi engine is disabled. Set ENABLE_RUBI=true to enable it.');
+        } else {
+            registerIfAvailable('rubi', new RubiAdapter());
+        }
         registerIfAvailable('obsidian', new ObsidianAdapter());
         registerIfAvailable('sonnet', new SonnetAdapter());
         registerIfAvailable('berserk', new BerserkAdapter());

@@ -174,7 +174,7 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **glaurung** | `/usr/games/glaurung` | UCI |
 | **ethereal** | `/usr/games/ethereal-chess` or `ethereal-chess` (in PATH) | UCI |
 
-> **Note:** Ethereal and Sjeng are supported but **disabled by default**. To enable them, set `ENABLE_ETHEREAL=true` or `ENABLE_SJENG=true` in the environment before starting the server. If enabled, the engine must be present. GNUChess is also disabled by default for resource reasons (enable with `ENABLE_GNUCHESS=true`).
+> **Note:** Ethereal and Sjeng are supported but **disabled by default**. To enable them, set `ENABLE_ETHEREAL=true` or `ENABLE_SJENG=true` in the environment before starting the server. If enabled, the engine must be present. GNUChess is also disabled by default for resource reasons (enable with `ENABLE_GNUCHESS=true`). Rubi is enabled by default but can be disabled with `ENABLE_RUBI=false` if the binary is incompatible with your CPU.
 
 > Note: XBoard engines are driven using an XBoard-style handshake (eg. `xboard`/`protover`) and may use `depth`/`time` commands instead of UCI options. Level mapping for XBoard engines is approximated (e.g., level -> depth 1..6); see adapters for details.
 
