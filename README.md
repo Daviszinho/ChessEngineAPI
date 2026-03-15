@@ -158,6 +158,7 @@ The API supports multiple engines. Below is a quick reference showing each engin
 | **critter** | `/snap/chess-tactics-and-strategy/2/opt/vlasovsoft/chess/engines/critter-16a`, `/app/engines/critter-16a` or `CRITTER_PATH` | UCI |
 | **fruit** | `/usr/games/fruit_21_static` or `fruit_21_static` (in PATH) | UCI |
 | **obsidian** | `engines/obsidian` or `OBSIDIAN_PATH` | UCI |
+| **sonnet** | `engines/sonnet-chess` or `SONNET_PATH` | UCI |
 | **berserk** | `engines/berserk` or `BERSERK_PATH` | UCI |
 | **caissa** | `engines/caissa/caissa` or `CAISSA_PATH` | UCI |
 
@@ -201,7 +202,7 @@ const response = await fetch('https://chessengineapi.calmdesert-d6fcfdbe.central
     },
     body: JSON.stringify({
         fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        engine: "stockfish",  // optional: engines include stockfish, reckless, torch-2, lc0, PlentyChess, fruit, obsidian, toga2, berserk, caissa (UCI) and phalanx, crafty, gnuchess (XBoard)
+        engine: "stockfish",  // optional: engines include stockfish, reckless, torch-2, lc0, PlentyChess, fruit, obsidian, sonnet, toga2, berserk, caissa (UCI) and phalanx, crafty, gnuchess (XBoard)
         level: 5              // optional: 1-20 (strength level)
     })
 });
