@@ -71,6 +71,11 @@ class SjengAdapter extends ChessEngineAdapter {
         if (this.awaitingFeature && /^feature\b/i.test(trimmed)) {
             console.log(`${this.engineName} received feature during handshake: '${trimmed}'`);
             if (this.logPath) { const fs = require('fs'); fs.appendFileSync(this.logPath, `STDOUT: ${trimmed}\n`); }
+            // Capture engine identity from XBoard "feature myname=<value>" line
+            const mynameMatch = trimmed.match(/\bmyname="([^"]+)"/i);
+            if (mynameMatch) {
+                this.engineVersion = mynameMatch[1].trim();
+            }
             if (/\bdone=1\b/i.test(trimmed)) {
                 this.awaitingFeature = false;
                 if (!this.isReady) {

@@ -48,6 +48,7 @@ app.get('/api/engines', (req, res) => {
             const unhealthy = adapter && adapter.unhealthyUntil && Date.now() < adapter.unhealthyUntil;
             return {
                 name,
+                version: adapter?.engineVersion || null,
                 healthy: !unhealthy,
                 crashCount: adapter?.crashCount || 0,
                 logPath: adapter?.logPath || null

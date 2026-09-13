@@ -11,6 +11,10 @@ class PhalanxAdapter extends ChessEngineAdapter {
     handleEngineOutput(line) {
         // Detect initial prompt like: [ white, 1 ] or other startup lines
         if (!this.isReady && /^\[.*\]$/.test(line.trim())) {
+            // Phalanx does not send XBoard feature lines; capture the startup banner as version
+            if (!this.engineVersion && line.trim()) {
+                this.engineVersion = line.trim();
+            }
             this.emit('ready');
             return;
         }

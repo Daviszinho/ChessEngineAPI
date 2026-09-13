@@ -17,13 +17,19 @@ describe('Server API', () => {
 
     test('GET /api/engines returns engines list', async () => {
         chessFacade.getAvailableEngines.mockReturnValue(['stockfish']);
-        chessFacade.getAdapter.mockReturnValue({ unhealthyUntil: null, crashCount: 0, logPath: null });
+        chessFacade.getAdapter.mockReturnValue({
+            unhealthyUntil: null,
+            crashCount: 0,
+            logPath: null,
+            engineVersion: 'Stockfish 17.1'
+        });
 
         const res = await request(app).get('/api/engines');
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty('engines');
         expect(res.body.engines.length).toBe(1);
         expect(res.body.default).toBe('stockfish');
+        expect(res.body.engines[0]).toHaveProperty('version', 'Stockfish 17.1');
     });
 
     test('POST /api/move returns enriched move', async () => {
@@ -86,7 +92,8 @@ describe('Server API', () => {
             shutdown: vi.fn().mockResolvedValue(),
             initialize: vi.fn().mockResolvedValue(),
             getBestMove: vi.fn().mockResolvedValue({ engine: 'Stockfish', move: 'e2e4' }),
-            logPath: null
+            logPath: null,
+            engineVersion: null
         };
 
         chessFacade.getAdapter.mockReturnValue(adapter);

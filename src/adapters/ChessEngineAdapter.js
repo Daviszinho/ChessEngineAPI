@@ -24,6 +24,9 @@ class ChessEngineAdapter extends EventEmitter {
         this._logStream = null;
         this.idleTimeoutMs = options.idleTimeoutMs || 60000; // default 60s
         this._idleTimer = null;
+
+        // Set during handshake from the engine's "id name" UCI line (or XBoard equivalent)
+        this.engineVersion = null;
     }
 
     async initialize() {
@@ -173,6 +176,11 @@ class ChessEngineAdapter extends EventEmitter {
     }
 
     handleEngineOutput(line) {
+        // Capture engine identity from UCI "id name <value>" line
+        if (line.startsWith('id name ')) {
+            this.engineVersion = line.slice('id name '.length).trim();
+        }
+
         if (line === 'uciok') {
             this.sendCommand('isready');
         } else if (line === 'readyok') {

@@ -42,6 +42,11 @@ class GNUChessAdapter extends ChessEngineAdapter {
             if (this.logPath) {
                 const fs = require('fs'); fs.appendFileSync(this.logPath, `STDOUT: ${cleanLine}\n`);
             }
+            // Capture engine identity from XBoard "feature myname=<value>" line
+            const mynameMatch = cleanLine.match(/\bmyname="([^"]+)"/i);
+            if (mynameMatch) {
+                this.engineVersion = mynameMatch[1].trim();
+            }
             if (/\bdone=1\b/i.test(cleanLine)) {
                 this.awaitingFeature = false;
                 if (!this.isReady) {
