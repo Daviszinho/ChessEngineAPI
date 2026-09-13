@@ -1,4 +1,4 @@
-FROM node:20-trixie-slim
+FROM node:24-trixie-slim
 
 # Enable non-free repos (needed for some chess engines such as crafty on Debian).
 RUN set -eux; \
