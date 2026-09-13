@@ -41,6 +41,13 @@ class RubiAdapter extends ChessEngineAdapter {
         return Math.max(1, Math.min(20, Math.floor(numericLevel)));
     }
 
+    levelToElo(level) {
+        // RubiChess strength range: approximately 1200–3000 Elo
+        const minElo = 1200;
+        const maxElo = 3000;
+        return Math.round(minElo + ((level - 1) * (maxElo - minElo) / 19));
+    }
+
     levelToMoveTimeMs(level) {
         const minMs = 100;
         const maxMs = 2400;
@@ -49,9 +56,14 @@ class RubiAdapter extends ChessEngineAdapter {
 
     setupGame(fen, level) {
         const normalizedLevel = this.normalizeLevel(level);
+        const useLimitedStrength = normalizedLevel < 20;
 
         this.sendCommand('ucinewgame');
         this.sendCommand('setoption name Ponder value false');
+        this.sendCommand(`setoption name UCI_LimitStrength value ${useLimitedStrength ? 'true' : 'false'}`);
+        if (useLimitedStrength) {
+            this.sendCommand(`setoption name UCI_Elo value ${this.levelToElo(normalizedLevel)}`);
+        }
         this.sendCommand(`position fen ${fen}`);
         this.sendCommand(`go movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
     }

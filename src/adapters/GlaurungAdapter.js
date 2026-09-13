@@ -44,7 +44,8 @@ class GlaurungAdapter extends ChessEngineAdapter {
         const normalizedLevel = this.normalizeLevel(level);
         this.sendCommand('ucinewgame');
         this.sendCommand('setoption name Ponder value false');
-        // Glaurung supports "Threads" UCI option (up to 4). Use available CPUs but cap at 4.
+        // Glaurung predates Stockfish and does NOT support the Skill Level UCI option.
+        // Strength is controlled via Threads and move time only.
         try {
             const cpus = Math.max(1, os.cpus().length || 1);
             const threads = Math.min(4, cpus);
@@ -52,8 +53,6 @@ class GlaurungAdapter extends ChessEngineAdapter {
         } catch (e) {
             // best-effort; ignore if os.cpus() isn't available
         }
-        // Map level roughly to skill setting if available
-        this.sendCommand(`setoption name Skill Level value ${normalizedLevel}`);
         this.sendCommand(`position fen ${fen}`);
         this.sendCommand(`go movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
     }

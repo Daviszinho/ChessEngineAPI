@@ -22,7 +22,13 @@ class ChessEngineFacade {
             throw new Error(`Engine '${engine}' not available. Available engines: ${Array.from(this.adapters.keys()).join(', ')}`);
         }
 
-        return await adapter.getBestMove(fen, level);
+        // Clamp and sanitize level before passing to the adapter
+        const numericLevel = Number(level);
+        const safeLevel = Number.isFinite(numericLevel)
+            ? Math.max(1, Math.min(20, Math.floor(numericLevel)))
+            : 1;
+
+        return await adapter.getBestMove(fen, safeLevel);
     }
 
     getAvailableEngines() {

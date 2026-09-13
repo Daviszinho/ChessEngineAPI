@@ -42,6 +42,13 @@ class CaissaAdapter extends ChessEngineAdapter {
         return Math.max(1, Math.min(20, Math.floor(numericLevel)));
     }
 
+    levelToElo(level) {
+        // Caissa strength range: approximately 1200–3000 Elo
+        const minElo = 1200;
+        const maxElo = 3000;
+        return Math.round(minElo + ((level - 1) * (maxElo - minElo) / 19));
+    }
+
     levelToMoveTimeMs(level) {
         const minMs = 120;
         const maxMs = 2600;
@@ -50,6 +57,7 @@ class CaissaAdapter extends ChessEngineAdapter {
 
     setupGame(fen, level) {
         const normalizedLevel = this.normalizeLevel(level);
+        const useLimitedStrength = normalizedLevel < 20;
 
         this.sendCommand('ucinewgame');
         this.sendCommand('setoption name Ponder value false');
@@ -58,6 +66,10 @@ class CaissaAdapter extends ChessEngineAdapter {
             this.sendCommand(`setoption name EvalFile value ${this.evalFile}`);
         }
 
+        this.sendCommand(`setoption name UCI_LimitStrength value ${useLimitedStrength ? 'true' : 'false'}`);
+        if (useLimitedStrength) {
+            this.sendCommand(`setoption name UCI_Elo value ${this.levelToElo(normalizedLevel)}`);
+        }
         this.sendCommand(`position fen ${fen}`);
         this.sendCommand(`go movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
     }

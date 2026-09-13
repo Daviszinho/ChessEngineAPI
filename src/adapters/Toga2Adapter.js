@@ -28,6 +28,12 @@ class Toga2Adapter extends ChessEngineAdapter {
         return Math.max(1, Math.min(20, Math.floor(numericLevel)));
     }
 
+    levelToDepth(level) {
+        // Toga2 is a Fruit fork; depth is the most reliable strength control.
+        // Range: depth 2 (level 1) to depth 16 (level 20)
+        return Math.round(2 + ((level - 1) * 14 / 19));
+    }
+
     levelToMoveTimeMs(level) {
         const minMs = 100;
         const maxMs = 2200;
@@ -36,11 +42,12 @@ class Toga2Adapter extends ChessEngineAdapter {
 
     setupGame(fen, level) {
         const normalizedLevel = this.normalizeLevel(level);
+        // Toga2 (a Fruit 2.1 port) does NOT support the Skill Level UCI option.
+        // Strength is controlled via search depth and move time.
         this.sendCommand('ucinewgame');
         this.sendCommand('setoption name Ponder value false');
-        this.sendCommand(`setoption name Skill Level value ${normalizedLevel}`);
         this.sendCommand(`position fen ${fen}`);
-        this.sendCommand(`go movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
+        this.sendCommand(`go depth ${this.levelToDepth(normalizedLevel)} movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
     }
 }
 

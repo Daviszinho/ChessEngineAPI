@@ -11,7 +11,7 @@ describe('StockfishAdapter', () => {
         expect(commands).toEqual([
             'ucinewgame',
             'setoption name Ponder value false',
-            'setoption name Skill Level value 1',
+            'setoption name Skill Level value 0',
             'setoption name UCI_LimitStrength value true',
             'setoption name UCI_Elo value 1350',
             'position fen fen-test',

@@ -73,7 +73,7 @@ class FruitAdapter extends ChessEngineAdapter {
         // Adjust search parameters based on strength
         if (strength < 10) {
             // Weaker play: reduce search depth and enable more pruning
-            this.sendCommand('setoption name NullMove Pruning value Always');
+            this.sendCommand('setoption name Null Move Pruning value Always');
             this.sendCommand('setoption name History Pruning value true');
             this.sendCommand('setoption name Futility Pruning value true');
             this.sendCommand('setoption name Delta Pruning value true');
@@ -86,7 +86,7 @@ class FruitAdapter extends ChessEngineAdapter {
             this.sendCommand(`setoption name Passed Pawns value ${knowledgeWeight}`);
         } else {
             // Stronger play: more conservative pruning, full knowledge
-            this.sendCommand('setoption name NullMove Pruning value Fail High');
+            this.sendCommand('setoption name Null Move Pruning value Fail High');
             this.sendCommand('setoption name History Pruning value true');
             this.sendCommand('setoption name Futility Pruning value false');
             this.sendCommand('setoption name Delta Pruning value false');

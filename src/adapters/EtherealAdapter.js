@@ -49,12 +49,12 @@ class EtherealAdapter extends ChessEngineAdapter {
 
     setupGame(fen, level) {
         const normalizedLevel = this.normalizeLevel(level);
-        // Use conservative defaults to avoid crashes on some builds
+        // Ethereal does NOT support the Skill Level UCI option.
+        // Strength is approximated via Threads, Hash size, and move time.
         this.sendCommand('ucinewgame');
         this.sendCommand('setoption name Ponder value false');
         this.sendCommand(`setoption name Threads value ${normalizedLevel >= 16 ? 2 : 1}`);
         this.sendCommand(`setoption name Hash value ${normalizedLevel >= 16 ? 32 : 16}`);
-        this.sendCommand(`setoption name Skill Level value ${normalizedLevel}`);
         this.sendCommand(`position fen ${fen}`);
         this.sendCommand(`go movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
     }

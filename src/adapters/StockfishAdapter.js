@@ -28,6 +28,12 @@ class StockfishAdapter extends ChessEngineAdapter {
         return Math.max(1, Math.min(20, Math.floor(numericLevel)));
     }
 
+    levelToSkillLevel(level) {
+        // Stockfish Skill Level range is 0–20.
+        // API level 1 → Skill Level 0 (weakest), API level 20 → Skill Level 20 (full strength).
+        return level - 1;
+    }
+
     levelToElo(level) {
         // Practical range for limited Stockfish strength in most distributions.
         const minElo = 1350;
@@ -43,11 +49,12 @@ class StockfishAdapter extends ChessEngineAdapter {
 
     setupGame(fen, level) {
         const normalizedLevel = this.normalizeLevel(level);
+        const skillLevel = this.levelToSkillLevel(normalizedLevel);
         const useLimitedStrength = normalizedLevel < 20;
 
         this.sendCommand('ucinewgame');
         this.sendCommand('setoption name Ponder value false');
-        this.sendCommand(`setoption name Skill Level value ${normalizedLevel}`);
+        this.sendCommand(`setoption name Skill Level value ${skillLevel}`);
         this.sendCommand(`setoption name UCI_LimitStrength value ${useLimitedStrength ? 'true' : 'false'}`);
 
         if (useLimitedStrength) {

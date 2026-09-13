@@ -18,15 +18,17 @@ function captureCommands(adapter) {
 }
 
 describe('Engine level impact', () => {
-    test('Toga2 changes movetime by level', () => {
+    test('Toga2 changes movetime and depth by level', () => {
         const adapter = new Toga2Adapter();
         const commands = captureCommands(adapter);
         adapter.setupGame('fen', 1);
-        expect(commands).toContain('go movetime 100');
+        // Toga2 does not support Skill Level; strength is controlled via depth + movetime
+        expect(commands).toContain('go depth 2 movetime 100');
+        expect(commands).not.toContain(expect.stringContaining('Skill Level'));
 
         commands.length = 0;
         adapter.setupGame('fen', 20);
-        expect(commands).toContain('go movetime 2200');
+        expect(commands).toContain('go depth 16 movetime 2200');
     });
 
     test('Fruit changes depth and movetime by level', () => {

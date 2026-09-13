@@ -68,6 +68,13 @@ class Lc0Adapter extends ChessEngineAdapter {
         return Math.max(1, Math.min(20, Math.floor(numericLevel)));
     }
 
+    levelToElo(level) {
+        // LC0 strength range via UCI_Elo: approximately 1100–3200 Elo
+        const minElo = 1100;
+        const maxElo = 3200;
+        return Math.round(minElo + ((level - 1) * (maxElo - minElo) / 19));
+    }
+
     levelToMoveTimeMs(level) {
         const minMs = 200;
         const maxMs = 3000;
@@ -76,9 +83,14 @@ class Lc0Adapter extends ChessEngineAdapter {
 
     setupGame(fen, level) {
         const normalizedLevel = this.normalizeLevel(level);
+        const useLimitedStrength = normalizedLevel < 20;
 
         this.sendCommand('ucinewgame');
         this.sendCommand('setoption name Ponder value false');
+        this.sendCommand(`setoption name UCI_LimitStrength value ${useLimitedStrength ? 'true' : 'false'}`);
+        if (useLimitedStrength) {
+            this.sendCommand(`setoption name UCI_Elo value ${this.levelToElo(normalizedLevel)}`);
+        }
         this.sendCommand(`position fen ${fen}`);
         this.sendCommand(`go movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
     }

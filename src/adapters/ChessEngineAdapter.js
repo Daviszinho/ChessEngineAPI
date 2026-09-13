@@ -238,11 +238,28 @@ class ChessEngineAdapter extends EventEmitter {
         });
     }
 
+    normalizeLevel(level) {
+        const numericLevel = Number(level);
+        if (!Number.isFinite(numericLevel)) {
+            return 1;
+        }
+        return Math.max(1, Math.min(20, Math.floor(numericLevel)));
+    }
+
+    levelToMoveTimeMs(level) {
+        const minMs = 100;
+        const maxMs = 2000;
+        return Math.round(minMs + ((level - 1) * (maxMs - minMs) / 19));
+    }
+
+    // Default setupGame: subclasses should override this with engine-specific commands.
+    // This fallback only scales movetime; it does NOT send Skill Level since most engines
+    // do not support that UCI option (only Stockfish does natively).
     setupGame(fen, level) {
+        const normalizedLevel = this.normalizeLevel(level);
         this.sendCommand('ucinewgame');
-        this.sendCommand(`setoption name Skill Level value ${level}`);
         this.sendCommand(`position fen ${fen}`);
-        this.sendCommand('go movetime 1000');
+        this.sendCommand(`go movetime ${this.levelToMoveTimeMs(normalizedLevel)}`);
     }
 
     async shutdown() {
